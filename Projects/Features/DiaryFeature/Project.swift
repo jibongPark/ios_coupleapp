@@ -6,6 +6,7 @@ let project = Project.configure(
     product: .framework,
     dependencies: [
         .Core.core,
-        .Modules.calendarData
+        .Modules.calendarData,
+        .external(name: "ComposableArchitecture")
     ]
 )

@@ -22,7 +22,7 @@ public extension SettingsDictionary {
         ]) { _, new in new }
     
     func configureAutoCodeSigning() -> SettingsDictionary {
-        return automaticCodeSigning(devTeam: "")
+        return automaticCodeSigning(devTeam: "6FDQX23XT6")
     }
     
     func configureVersioning() -> SettingsDictionary {

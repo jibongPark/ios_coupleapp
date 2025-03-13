@@ -17,20 +17,17 @@ public struct XCConfig {
     }
     
     public static let framework: [Configuration] = [
-        .debug(name: "Develop", xcconfig: Path.framework),
-        .debug(name: "Test", xcconfig: Path.framework),
-        .release(name: "Production", xcconfig: Path.framework),
+        .debug(name: "Debug", xcconfig: Path.framework),
+        .release(name: "Release", xcconfig: Path.framework),
     ]
     
     public static let tests: [Configuration] = [
-        .debug(name: "Develop", xcconfig: Path.tests),
-        .debug(name: "Test", xcconfig: Path.tests),
-        .release(name: "Production", xcconfig: Path.tests),
+        .debug(name: "Debug", xcconfig: Path.tests),
+        .release(name: "Release", xcconfig: Path.tests),
     ]
     
     public static let project: [Configuration] = [
-        .debug(name: "Develop", xcconfig: Path.project("Develop")),
-        .debug(name: "Test", xcconfig: Path.project("Test")),
-        .release(name: "Production", xcconfig: Path.project("Production")),
+        .debug(name: "Debug", xcconfig: Path.project("Develop")),
+        .release(name: "Release", xcconfig: Path.project("Production")),
     ]
 }

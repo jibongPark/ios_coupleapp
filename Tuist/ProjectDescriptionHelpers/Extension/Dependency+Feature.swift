@@ -9,6 +9,7 @@ import ProjectDescription
 
 public extension TargetDependency {
     struct Features {
+        public struct Map {}
         public struct Todo {}
         public struct Diary {}
         public struct Schedule {}
@@ -45,6 +46,13 @@ public extension TargetDependency.Features.Diary {
 
 public extension TargetDependency.Features.Todo {
     static let name = "Todo"
+    
+    static let Feature = TargetDependency.Features.project(name: "\(name)Feature")
+    static let Interface = TargetDependency.project(target: "\(name)FeatureInterface", path: .relativeToFeature("\(name)Feature"))
+}
+
+public extension TargetDependency.Features.Map {
+    static let name = "Map"
     
     static let Feature = TargetDependency.Features.project(name: "\(name)Feature")
     static let Interface = TargetDependency.project(target: "\(name)FeatureInterface", path: .relativeToFeature("\(name)Feature"))

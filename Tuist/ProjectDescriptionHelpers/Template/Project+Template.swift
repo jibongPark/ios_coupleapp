@@ -48,6 +48,36 @@ extension Project {
                 targets: targets,
                 schemes: schemes
             )
+        case let .demoapp(name):
+        
+            let appTarget = Target.target(
+                name: "\(name) demo app",
+                destinations: configuration.destination,
+                product: .app,
+                bundleId: "\(configuration.bundleIdentifier).demo.\(name.lowercased())",
+                deploymentTargets: configuration.deploymentTarget,
+                infoPlist: .extendingDefault(with: configuration.demoInfoPlist(name: name)),
+                sources: ["Sources/**"],
+                resources: [.glob(pattern: "Resources/**", excluding: [])],
+                entitlements: configuration.entitlements,
+                dependencies: dependencies,
+                settings: configuration.setting
+            )
+            targets.append(appTarget)
+            
+            let appScheme = Scheme.configureAppScheme(
+                schemeName: "\(name) demo app"
+            )
+            schemes = appScheme
+            
+            return Project(
+                name: "\(name) demo app",
+                organizationName: configuration.organizationName,
+                settings: configuration.setting,
+                targets: targets,
+                schemes: schemes
+            )
+        
         case let .feature(name, type):
             let featureTargetName = "\(name)Feature"
             switch type {
@@ -79,6 +109,22 @@ extension Project {
                     schemeName: featureTargetName
                 )
                 schemes.append(featureScheme)
+                
+                let demoTarget = Target.target(
+                    name: "\(name) demo app",
+                    destinations: configuration.destination,
+                    product: .app,
+                    bundleId: "\(configuration.bundleIdentifier).demo.\(name.lowercased())",
+                    deploymentTargets: configuration.deploymentTarget,
+                    infoPlist: .extendingDefault(with: configuration.demoInfoPlist(name: name)),
+                    sources: ["Sources/**"],
+                    resources: [.glob(pattern: "Resources/**", excluding: [])],
+                    entitlements: configuration.entitlements,
+                    dependencies: dependencies,
+                    settings: configuration.setting
+                )
+                
+                targets.append(demoTarget)
                 
                 return Project(
                     name: featureTargetName,
@@ -220,36 +266,36 @@ extension Project {
             ]
         )
         
-        // Demo 타겟
-        let demoTargetName = "\(name)Demo"
+        
         let demoTarget = Target.target(
-            name: demoTargetName,
+            name: "\(name) demo app",
             destinations: configuration.destination,
             product: .app,
-            bundleId: "\(configuration.bundleIdentifier).\(name.lowercased())Demo",
+            bundleId: "\(configuration.bundleIdentifier).demo.\(name.lowercased())",
             deploymentTargets: configuration.deploymentTarget,
-            infoPlist: .default,
-            sources: ["Demo/Sources/**"],
-            resources: [.glob(pattern: "Demo/Resources/**", excluding: [])],
-            dependencies: [
-                .target(name: frameworkTargetName)
-            ]
+            infoPlist: .extendingDefault(with: configuration.demoInfoPlist(name: name)),
+            sources: ["Demo/Sources/**",
+                     "Sources/**"],
+            resources: [.glob(pattern: "Resources/**", excluding: [])],
+            entitlements: configuration.entitlements,
+            dependencies: dependencies,
+            settings: configuration.setting
         )
         
         // Test 타겟
-        let testTargetName = "\(name)Test"
-        let testTarget = Target.target(
-            name: testTargetName,
-            destinations: configuration.destination,
-            product: product,
-            bundleId: "\(configuration.bundleIdentifier).\(name.lowercased())Test",
-            deploymentTargets: configuration.deploymentTarget,
-            infoPlist: .default,
-            sources: ["Test/Sources/**"],
-            dependencies: [
-                .target(name: interfaceTargetName)
-            ]
-        )
+//        let testTargetName = "\(name)Test"
+//        let testTarget = Target.target(
+//            name: testTargetName,
+//            destinations: configuration.destination,
+//            product: product,
+//            bundleId: "\(configuration.bundleIdentifier).\(name.lowercased())Test",
+//            deploymentTargets: configuration.deploymentTarget,
+//            infoPlist: .default,
+//            sources: ["Test/Sources/**"],
+//            dependencies: [
+//                .target(name: interfaceTargetName)
+//            ]
+//        )
         
         // Tests 타겟
         let testsTargetName = "\(name)Tests"
@@ -263,11 +309,10 @@ extension Project {
             sources: ["Tests/Sources/**"],
             dependencies: [
                 .target(name: frameworkTargetName),
-                .target(name: testTargetName)
             ]
         )
         
-        let targets = [interfaceTarget, frameworkTarget, demoTarget, testsTarget, testTarget]
+        let targets = [interfaceTarget, frameworkTarget, demoTarget, testsTarget, /*testTarget*/]
         
         let scheme = Scheme.configureDemoAppScheme(schemeName: name)
         

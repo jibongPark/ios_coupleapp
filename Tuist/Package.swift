@@ -16,7 +16,7 @@ let package = Package(
     name: "coupleapp_ios",
     dependencies: [
         // Add your own dependencies here:
-         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.17.1"),
+         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.16.1"),
         // You can read more about dependencies here: https://docs.tuist.io/documentation/tuist/dependencies
     ]
 )

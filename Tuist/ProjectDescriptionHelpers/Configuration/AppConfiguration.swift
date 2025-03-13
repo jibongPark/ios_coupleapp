@@ -13,12 +13,12 @@ public struct AppConfiguration {
     
     public init() {}
     
-    let workspaceName = "Sample"
-    let projectName: String = "Sample"
-    let organizationName = "SampleCompany"
+    let workspaceName = "coupleapp"
+    let projectName: String = "coupleapp"
+    let organizationName = "JIBONG PARK"
     let shortVersion: String = "1.0.0"
-    let bundleIdentifier: String = "com.bongbong.sample"
-    let displayName: String = "트위스트"
+    let bundleIdentifier: String = "com.bongbong.coupleapp-ios"
+    let displayName: String = "커플 앱"
     let destination: Set<Destination> = [.iPhone, .iPad]
     var entitlements: Entitlements? = nil
     let deploymentTarget: DeploymentTargets = .iOS("16.0")
@@ -31,8 +31,12 @@ public struct AppConfiguration {
         InfoPlist.appInfoPlist(self)
     }
     
+    func demoInfoPlist(name: String) -> [String : Plist.Value] {
+        return InfoPlist.demoAppInfoPlist(self, name: name)
+    }
+    
     public var autoCodeSigning: SettingsDictionary {
-        return SettingsDictionary().automaticCodeSigning(devTeam: "")
+        return SettingsDictionary().automaticCodeSigning(devTeam: "6FDQX23XT6")
     }
     
     var setting: Settings {

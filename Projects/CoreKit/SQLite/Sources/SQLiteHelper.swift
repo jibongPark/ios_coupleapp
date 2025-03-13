@@ -2,9 +2,13 @@ import Foundation
 import SQLite3
 
 
-class SQLiteHelper {
-    static let shared = SQLiteHelper()
+public class SQLiteHelper {
+    public static let shared = SQLiteHelper()
     private var db: OpaquePointer?
+    
+    init() {
+        openDatabase()
+    }
     
     private func openDatabase() {
         let fileURL = FileManager.default
@@ -13,7 +17,7 @@ class SQLiteHelper {
             .appendingPathComponent("coupleApp_ios.sqlite")
         
         if sqlite3_open(fileURL.path(), &db) != SQLITE_OK {
-            
+            print("sqlite3 open fail")
         }
     }
     
@@ -69,7 +73,7 @@ class SQLiteHelper {
     }
     
     // 객체 조회
-    func fetchObjects<T: Decodable>(tableName: String, type: T.Type, whereString: String = "") -> [T] {
+    public func fetchObjects<T: Decodable>(tableName: String, type: T.Type, whereString: String = "") -> [T] {
         var result: [T] = []
         let query = !whereString.isEmpty ? "SELECT * FROM \(tableName);" : "SELECT * FROM \(tableName) WHERE \(whereString);"
         
@@ -99,7 +103,7 @@ class SQLiteHelper {
     }
     
     // 객체 저장
-    func insertOrUpdateObject(_ object: Any, tableName: String, isUpdate: Bool) {
+    public func insertOrUpdateObject(_ object: Any, tableName: String, isUpdate: Bool) {
         let mirror = Mirror(reflecting: object)
         var columnNames: [String] = []
         var values: [String] = []

@@ -14,6 +14,7 @@ public extension TargetDependency {
 
 public extension TargetDependency.Modules {
     static let calendarData = TargetDependency.project(target: "CalendarData", path: .calendarData)
+    static let mapData = TargetDependency.project(target: "MapData", path: .mapData)
     static let domain = TargetDependency.project(target: "Domain", path: .domain)
     
 //    static let shared = TargetDependency.project(target: "Shared", path: .relativeToModule("Shared"))

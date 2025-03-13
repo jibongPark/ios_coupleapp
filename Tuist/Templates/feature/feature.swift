@@ -20,9 +20,9 @@ let template = Template(
         .file(path: "\(nameAttribute)Feature/Tests/Sources/sample.swift",
               templatePath: "../stencil/sample.stencil"),
         
-        // MARK: Test
-        .file(path: "\(nameAttribute)Feature/Test/Sources/sample.swift",
-              templatePath: "../stencil/sample.stencil"),
+//        // MARK: Test
+//        .file(path: "\(nameAttribute)Feature/Test/Sources/sample.swift",
+//              templatePath: "../stencil/sample.stencil"),
         
         // MARK: Demo
         .file(path: "\(nameAttribute)Feature/Demo/Resources/sample.swift",

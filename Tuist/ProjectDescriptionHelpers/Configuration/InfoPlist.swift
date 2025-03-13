@@ -35,4 +35,12 @@ public struct InfoPlist {
         infoPlist["CFBundleDisplayName"] = .string(appConfiguration.displayName)
         return infoPlist
     }
+    
+    static func demoAppInfoPlist(_ appConfiguration: AppConfiguration, name: String) -> [String: Plist.Value] {
+        var infoPlist = commonInfoPlist
+        infoPlist["CFBundleShortVersionString"] = .string(appConfiguration.shortVersion)
+        infoPlist["CFBundleIdentifier"] = "\(appConfiguration.bundleIdentifier).demo.\(name.lowercased())"
+        infoPlist["CFBundleDisplayName"] = "\(name) demo"
+        return infoPlist
+    }
 }
