@@ -26,4 +26,5 @@ public extension TargetDependency.Core {
     static let designKit = TargetDependency.project(target: "DesignKit", path: .relativeToCore("DesignKit"))
     static let core = TargetDependency.project(target: "Core", path: .relativeToCore("Core"))
     static let sqlite = TargetDependency.project(target: "SQLite", path: .relativeToCore("SQLite"))
+    static let realmKit = TargetDependency.project(target: "RealmKit", path: .relativeToCore("RealmKit"))
 }

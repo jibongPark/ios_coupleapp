@@ -10,5 +10,6 @@ import ComposableArchitecture
 
 public protocol MapRepository {
     func fetchPolygons() -> Effect<PolygonVO>
-    func fetchTrips(polygons: [PolygonData]) -> Effect<[Int: TripVO]>
+    func fetchTrips() -> Effect<[Int: TripVO]>
+    func updateTrip(_ trip: TripVO)
 }

@@ -38,10 +38,23 @@ public struct PolygonVO: Equatable {
     }
 }
 
-public struct TripVO: Equatable {
+public struct TripVO: Equatable, Decodable {
     public let sigunguCode: Int
-    public let images: [Image]
+    public let images: [Data]
     public let startDate: Date
     public let endDate: Date
     public let memo: String
+    
+    public init(sigunguCode: Int, images: [Data], startDate: Date, endDate: Date, memo: String) {
+        self.sigunguCode = sigunguCode
+        self.images = images
+        self.startDate = startDate
+        self.endDate = endDate
+        self.memo = memo
+    }
+    
+    public func imageAtIndex(_ index: Int) -> Data? {
+        guard index >= 0 && index < images.count else { return nil }
+        return images[index]
+    }
 }

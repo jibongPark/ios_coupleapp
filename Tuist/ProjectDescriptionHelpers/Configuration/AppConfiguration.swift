@@ -21,7 +21,7 @@ public struct AppConfiguration {
     let displayName: String = "커플 앱"
     let destination: Set<Destination> = [.iPhone, .iPad]
     var entitlements: Entitlements? = nil
-    let deploymentTarget: DeploymentTargets = .iOS("16.0")
+    let deploymentTarget: DeploymentTargets = .iOS("17.0")
     
     public var configurationName: ConfigurationName {
         return "TestProject"

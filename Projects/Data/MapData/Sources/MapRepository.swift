@@ -2,9 +2,13 @@ import Foundation
 import Domain
 import MapKit
 import ComposableArchitecture
+import RealmKit
+import RealmSwift
 
 
 public struct MapRepositoryImpl: MapRepository {
+    
+    @Dependency(\.realmKit) var realmKit
     
     public init() {}
     
@@ -25,7 +29,8 @@ public struct MapRepositoryImpl: MapRepository {
                        let jsonObject = try? JSONSerialization.jsonObject(with: propertiesData, options: []),
                        let properties = jsonObject as? [String: Any] {
                         let name = properties["SIGUNGU_NM"] as? String ?? ""
-                        let sigunguCode = properties["SIGUNGU_CD"] as? Int ?? -1
+                        let codeString = properties["SIGUNGU_CD"] as? String ?? "-1"
+                        let sigunguCode = Int(codeString) ?? -1
                         for geometry in feature.geometry {
                             if let multiPolygon = geometry as? MKMultiPolygon {
                                 let polygonData = PolygonData(sigunguCode: sigunguCode, name: name, polygon: multiPolygon)
@@ -42,10 +47,17 @@ public struct MapRepositoryImpl: MapRepository {
         }
     }
     
-    public func fetchTrips(polygons: [Domain.PolygonData]) -> ComposableArchitecture.Effect<[Int : Domain.TripVO]> {
+    public func fetchTrips() -> ComposableArchitecture.Effect<[Int : Domain.TripVO]> {
         .run { send in
             
+            let tripDatas = realmKit.fetchAllData(type: TripDTO.self)
+            let tripDic = Dictionary(uniqueKeysWithValues:tripDatas.map { ($0.sigunguCode, $0.toVO()) })
+            await send(tripDic)
         }
+    }
+    
+    public func updateTrip(_ trip: TripVO) {
+        realmKit.addData(TripDTO(from: trip))
     }
 }
 

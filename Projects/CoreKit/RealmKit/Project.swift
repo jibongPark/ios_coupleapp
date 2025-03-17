@@ -1,21 +1,18 @@
 //
 //  Project.swift
-//  Config
+//  Manifests
 //
-//  Created by Junyoung on 1/9/25.
+//  Created by 박지봉 on 2/7/25.
 //
 
 import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.configure(
-    moduleType: .module(name: "MapData"),
+    moduleType: .module(name: "RealmKit"),
     product: .framework,
     dependencies: [
-        .Core.realmKit,
-        .Modules.domain,
         .external(name: "RealmSwift"),
-        .external(name: "Realm"),
-//        .Modules.networkModule
+        .external(name: "Realm")
     ]
 )
