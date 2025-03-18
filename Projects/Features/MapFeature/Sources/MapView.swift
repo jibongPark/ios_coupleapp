@@ -23,17 +23,14 @@ struct ContentView: View {
                             ForEach(0..<polygons.count, id: \.self) { index in
                                 
                                 let polygon = polygons[index]
-                                
-                                if polygon.name == "제주시" {
                                     
-                                    PolygonItemView(polygon: polygon,
-                                                    boundingRect: boundingRect,
-                                                    tripVO: tripData[polygon.sigunguCode],
-                                                    viewScale: viewScale,
-                                                    geometrySize: geometry.size)
-                                    .onTapGesture {
-                                        store.send(.mapTapped(polygon.sigunguCode))
-                                    }
+                                PolygonItemView(polygon: polygon,
+                                                boundingRect: boundingRect,
+                                                tripVO: tripData[polygon.sigunguCode],
+                                                viewScale: viewScale,
+                                                geometrySize: geometry.size)
+                                .onTapGesture {
+                                    store.send(.mapTapped(polygon))
                                 }
                             }
                         }
@@ -69,42 +66,34 @@ struct PolygonItemView: View {
             size: CGSize(width: geometrySize.width * viewScale, height: geometrySize.height * viewScale)
             )
         
+        let tripScale = CGFloat(tripVO?.scale ?? 1.0)
+        
         return ZStack {
-            
-//            let _ = print(polygon.polygon.boundingMapRect)
-            
-//            let shapeStyle: AnyShapeStyle = {
-//                if let data = tripVO?.imageAtIndex(0),
-//                   let image = UIImage(data:data) {
-//                    return AnyShapeStyle(ImagePaint(image: Image(uiImage: image), scale: 0.1) )
-//                } else {
-//                    return AnyShapeStyle(.white)
-//                }
-//            }()
             
             let shapeRect = shape.path(in: frame).boundingRect
 
             shape.stroke(.gray, lineWidth: 0.5)
-                .frame(width: geometrySize.width * viewScale, height: geometrySize.height * viewScale)
+                .frame(width: frame.size.width, height: frame.size.height)
+            
+            let tripCenter: CGPoint = tripVO?.center ?? .zero
+            
+            let center = CGPoint(x: shapeRect.minX + tripCenter.x * shapeRect.width/2,
+                                 y: shapeRect.minY + tripCenter.y * shapeRect.height/2)
             
             if let data = tripVO?.imageAtIndex(0),
                let image = UIImage(data:data) {
                 Image(uiImage: image)
                     .resizable()
-                    .scaledToFit()
-                    .frame(width: shapeRect.width, height: shapeRect.height, alignment: .center)
-                    .position(x: shapeRect.midX, y: shapeRect.midY)
+                    .scaledToFill()
+                    .frame(width: shapeRect.width, height: shapeRect.height)
+                    .scaleEffect(tripScale)
+                    .position(center)
                     .clipShape(shape)
+                    .contentShape(shape)
             }
             
-//            Rectangle()
-//                .stroke(.black)
-//                .frame(width: shapeRect.width, height: shapeRect.height)
-//                .position(x: shapeRect.midX, y: shapeRect.midY)
-                
-                
-            
-            
+//            Text(polygon.name)
+//                .position(CGPoint(x: shapeRect.midX, y: shapeRect.midY))
         }
     }
 }

@@ -44,13 +44,17 @@ public struct TripVO: Equatable, Decodable {
     public let startDate: Date
     public let endDate: Date
     public let memo: String
+    public let scale: Float
+    public let center: CGPoint
     
-    public init(sigunguCode: Int, images: [Data], startDate: Date, endDate: Date, memo: String) {
+    public init(sigunguCode: Int, images: [Data], startDate: Date, endDate: Date, memo: String, scale: Float, center: CGPoint) {
         self.sigunguCode = sigunguCode
         self.images = images
         self.startDate = startDate
         self.endDate = endDate
         self.memo = memo
+        self.scale = scale
+        self.center = center
     }
     
     public func imageAtIndex(_ index: Int) -> Data? {

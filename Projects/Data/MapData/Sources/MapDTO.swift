@@ -18,12 +18,15 @@ final class TripDTO: Object {
     @Persisted public var startDate: Date
     @Persisted public var endDate: Date
     @Persisted public var memo: String
+    @Persisted public var scale: Float
+    @Persisted public var centerX: Float
+    @Persisted public var centerY: Float
     
     public override init() {
         
     }
     
-    public init(sigunguCode: Int, images: [Data], startDate: Date, endDate: Date, memo: String) {
+    public init(sigunguCode: Int, images: [Data], startDate: Date, endDate: Date, memo: String, scale: Float, centerX: Float, centerY: Float) {
         super.init()
         self.sigunguCode = sigunguCode
         self.images = List()
@@ -31,6 +34,9 @@ final class TripDTO: Object {
         self.startDate = startDate
         self.endDate = endDate
         self.memo = memo
+        self.scale = scale
+        self.centerX = centerX
+        self.centerY = centerY
     }
     
     public init(from vo: TripVO) {
@@ -41,10 +47,13 @@ final class TripDTO: Object {
         self.startDate = vo.startDate
         self.endDate = vo.endDate
         self.memo = vo.memo
+        self.scale = vo.scale
+        self.centerX = Float(vo.center.x)
+        self.centerY = Float(vo.center.y)
     }
     
     public func toVO() -> TripVO {
-        return TripVO(sigunguCode: sigunguCode, images: Array(images), startDate: startDate, endDate: endDate, memo: memo)
+        return TripVO(sigunguCode: sigunguCode, images: Array(images), startDate: startDate, endDate: endDate, memo: memo, scale: scale, center: CGPoint(x: CGFloat(centerX), y: CGFloat(centerY)))
     }
 }
 

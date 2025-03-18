@@ -23,7 +23,7 @@ public struct MapReducer {
         case onApear
         case mapDataLoaded(PolygonVO)
         case tripDataLoaded([Int: TripVO])
-        case mapTapped(Int)
+        case mapTapped(PolygonData)
         case addTrip(PresentationAction<AddTripReducer.Action>)
     }
     
@@ -53,11 +53,11 @@ public struct MapReducer {
                 state.tripData = data
                 return .none
                 
-            case .mapTapped(let sigunguCode):
-                if let tripData = state.tripData[sigunguCode] {
-                    state.addTrip = AddTripReducer.State(sigunguCode: sigunguCode, images: tripData.images, startDate: tripData.startDate, endDate: tripData.endDate, memo: tripData.memo)
+            case .mapTapped(let polygon):
+                if let tripData = state.tripData[polygon.sigunguCode] {
+                    state.addTrip = AddTripReducer.State(polygon: polygon, tripVO: tripData)
                 } else {
-                    state.addTrip = AddTripReducer.State(sigunguCode: sigunguCode)
+                    state.addTrip = AddTripReducer.State(polygon: polygon)
                 }
                 return .none
                 
