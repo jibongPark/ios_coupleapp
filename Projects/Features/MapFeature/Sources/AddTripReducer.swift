@@ -10,6 +10,7 @@ import Foundation
 import ComposableArchitecture
 import SwiftUICore
 import Domain
+import Core
 
 @Reducer
 public struct AddTripReducer {
@@ -18,14 +19,15 @@ public struct AddTripReducer {
     
     @ObservableState
     public struct State: Equatable {
+        
+        @Presents var imagePicker: ImagePickerReducer.State?
+        
         let sigunguCode: Int
         var images: [Data] = []
         var startDate: Date = Date.now
         var endDate: Date = Date.now
         var memo: String = ""
         var tripVO: TripVO? = nil
-        
-        var isShowingImagePicker = false
     }
     
     public enum Action {
@@ -40,6 +42,8 @@ public struct AddTripReducer {
         public enum Delegate: Equatable {
             case saveTrip(TripVO)
         }
+        
+        case imagePicker(PresentationAction<ImagePickerReducer.Action>)
     }
     
     @Dependency(\.dismiss) var dismiss
@@ -75,14 +79,23 @@ public struct AddTripReducer {
                 return .none
                 
             case .addImageButtonTapped:
-//                state.openPhoto = true
+                state.imagePicker = ImagePickerReducer.State()
                 return .none
                 
             case .saveTripData(let tripVO):
                 mapRepository.updateTrip(tripVO)
                 return .none
+                
+            case .imagePicker(.presented(.delegate(.didFinishPicking(let images)))):
+                state.images = images
+                return .none
+                
+            case .imagePicker:
+                return .none
             }
-            
+        }
+        .ifLet(\.$imagePicker, action: \.imagePicker) {
+            ImagePickerReducer()
         }
     }
 }

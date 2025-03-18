@@ -12,6 +12,7 @@ let project = Project.configure(
     moduleType: .module(name: "Core"),
     product: .framework,
     dependencies: [
-        .Core.designKit
+        .Core.designKit,
+        .external(name: "ComposableArchitecture")
     ]
 )

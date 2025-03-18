@@ -24,13 +24,16 @@ struct ContentView: View {
                                 
                                 let polygon = polygons[index]
                                 
-                                PolygonItemView(polygon: polygon,
-                                                boundingRect: boundingRect,
-                                                tripVO: tripData[polygon.sigunguCode],
-                                                viewScale: viewScale,
-                                                geometrySize: geometry.size)
-                                .onTapGesture {
-                                    store.send(.mapTapped(polygon.sigunguCode))
+                                if polygon.name == "제주시" {
+                                    
+                                    PolygonItemView(polygon: polygon,
+                                                    boundingRect: boundingRect,
+                                                    tripVO: tripData[polygon.sigunguCode],
+                                                    viewScale: viewScale,
+                                                    geometrySize: geometry.size)
+                                    .onTapGesture {
+                                        store.send(.mapTapped(polygon.sigunguCode))
+                                    }
                                 }
                             }
                         }
@@ -67,17 +70,43 @@ struct PolygonItemView: View {
             )
         
         return ZStack {
-            shape.fill(.white)
-                .overlay(shape.stroke(.gray, lineWidth: 0.5))
+            
+//            let _ = print(polygon.polygon.boundingMapRect)
+            
+//            let shapeStyle: AnyShapeStyle = {
+//                if let data = tripVO?.imageAtIndex(0),
+//                   let image = UIImage(data:data) {
+//                    return AnyShapeStyle(ImagePaint(image: Image(uiImage: image), scale: 0.1) )
+//                } else {
+//                    return AnyShapeStyle(.white)
+//                }
+//            }()
+            
+            let shapeRect = shape.path(in: frame).boundingRect
+
+            shape.stroke(.gray, lineWidth: 0.5)
                 .frame(width: geometrySize.width * viewScale, height: geometrySize.height * viewScale)
-            if let memo = tripVO?.memo {
-                Text(memo)
-                    .font(.system(size:10))
-                    .position(shape.center(frame))
+            
+            if let data = tripVO?.imageAtIndex(0),
+               let image = UIImage(data:data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: shapeRect.width, height: shapeRect.height, alignment: .center)
+                    .position(x: shapeRect.midX, y: shapeRect.midY)
+                    .clipShape(shape)
             }
+            
+//            Rectangle()
+//                .stroke(.black)
+//                .frame(width: shapeRect.width, height: shapeRect.height)
+//                .position(x: shapeRect.midX, y: shapeRect.midY)
+                
+                
+            
+            
         }
     }
-    
 }
 
 struct MultiPolygonShape: Shape {

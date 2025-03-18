@@ -6,43 +6,106 @@
 //  Copyright © 2025 JIBONG PARK. All rights reserved.
 //
 
+import Foundation
+import ComposableArchitecture
 import SwiftUI
 import PhotosUI
 
-public struct ImagePicker: UIViewControllerRepresentable {
-    @Environment(\.presentationMode) var presentationMode
-    // 선택 완료 시 호출할 클로저
-    let onComplete: ([UIImage]) -> Void
+@Reducer
+public struct ImagePickerReducer {
+    
+    public init() {
+    }
+    
+    @ObservableState
+    public struct State: Equatable {
+        public var images: [Data] = []
+        
+        public init(images: [Data] = []) {
+            self.images = images
+        }
+    }
+    
+    public enum Action {
+        case delegate(Delegate)
+        case cancelButtonTapped
+        case doneButtonTapped([UIImage])
+        public enum Delegate: Equatable {
+            case didFinishPicking(images: [Data])
+        }
+    }
+    
+    @Dependency(\.dismiss) var dismiss
+    
+    public var body: some ReducerOf<Self> {
+        
+        Reduce { state, action in
+            
+            switch action {
+                
+            case .delegate:
+                return .none
+                
+            case .cancelButtonTapped:
+                return .run { _ in await self.dismiss() }
+                
+            case .doneButtonTapped(let images):
+                var datas = [Data]()
+                
+                datas = images.map( { $0.pngData() ?? Data()})
+                
+                return .run { [datas] send in
+                    await send(.delegate(.didFinishPicking(images: datas)))
+                    await self.dismiss()
+                }
+            }
+        }
+    }
+}
 
+public struct ImagePickerView: UIViewControllerRepresentable {
+    let store: StoreOf<ImagePickerReducer>
+    
+    public init(store: StoreOf<ImagePickerReducer>) {
+        self.store = store
+    }
+    
     public func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
-        config.selectionLimit = 0 // 0이면 무제한 선택, 1이면 단일 선택
-        config.filter = .images  // 이미지만 선택 가능
+        config.selectionLimit = 0      // 0이면 무제한 선택, 원하는 개수로 제한 가능
+        config.filter = .images         // 이미지만 선택
+        
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = context.coordinator
+        
+        picker.presentationController?.delegate = context.coordinator
+    
+        picker.modalPresentationStyle = .pageSheet
+        
         return picker
     }
-
+    
     public func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) { }
-
+    
     public func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(store: store)
     }
-
-    public class Coordinator: NSObject, PHPickerViewControllerDelegate {
-        let parent: ImagePicker
-        init(_ parent: ImagePicker) {
-            self.parent = parent
+    
+    public class Coordinator: NSObject, PHPickerViewControllerDelegate, UIAdaptivePresentationControllerDelegate {
+        let store: StoreOf<ImagePickerReducer>
+        
+        init(store: StoreOf<ImagePickerReducer>) {
+            self.store = store
         }
+        
         public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-            // 결과 배열의 순서가 선택한 순서와 동일하다고 가정
             var images: [UIImage] = []
             let group = DispatchGroup()
             
             for result in results {
                 group.enter()
                 if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
-                    result.itemProvider.loadObject(ofClass: UIImage.self) { (object, error) in
+                    result.itemProvider.loadObject(ofClass: UIImage.self) { object, error in
                         if let image = object as? UIImage {
                             images.append(image)
                         }
@@ -52,9 +115,13 @@ public struct ImagePicker: UIViewControllerRepresentable {
                     group.leave()
                 }
             }
+            
             group.notify(queue: .main) {
-                self.parent.onComplete(images)
-                self.parent.presentationMode.wrappedValue.dismiss()
+                if images.isEmpty {
+                    self.store.send(.cancelButtonTapped)
+                } else {
+                    self.store.send(.doneButtonTapped(images))
+                }
             }
         }
     }

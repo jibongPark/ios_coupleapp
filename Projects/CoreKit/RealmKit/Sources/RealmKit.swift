@@ -22,7 +22,7 @@ public class RealmKit {
     
     public func addData<T: Object>(_ object: T) {
         try! realm.write {
-            realm.add(object)
+            realm.add(object, update: .modified)
         }
     }
 }
