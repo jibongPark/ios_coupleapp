@@ -23,7 +23,7 @@ struct ContentView: View {
                             ForEach(0..<polygons.count, id: \.self) { index in
                                 
                                 let polygon = polygons[index]
-                                    
+                                
                                 PolygonItemView(polygon: polygon,
                                                 boundingRect: boundingRect,
                                                 tripVO: tripData[polygon.sigunguCode],
@@ -34,6 +34,7 @@ struct ContentView: View {
                                 }
                             }
                         }
+                        .padding(10)
                     }
                     .frame(width: geometry.size.width, height: geometry.size.height)
                 } else {
@@ -42,7 +43,7 @@ struct ContentView: View {
                 }
             }
         }
-        .sheet(
+        .fullScreenCover(
             item: $store.scope(state: \.addTrip, action: \.addTrip)
         ) { addTripStore in
             NavigationStack {
@@ -80,8 +81,8 @@ struct PolygonItemView: View {
             let center = CGPoint(x: shapeRect.minX + tripCenter.x * shapeRect.width/2,
                                  y: shapeRect.minY + tripCenter.y * shapeRect.height/2)
             
-            if let data = tripVO?.imageAtIndex(0),
-               let image = UIImage(data:data) {
+            if let imagePath = tripVO?.imageAtIndex(0),
+               let image = loadImage(withFilename: imagePath) {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
@@ -92,10 +93,20 @@ struct PolygonItemView: View {
                     .contentShape(shape)
             }
             
-//            Text(polygon.name)
-//                .position(CGPoint(x: shapeRect.midX, y: shapeRect.midY))
+            // TODO: 이후 scrollView의 zoomScale에 따라 fontSize 조정 필요함
+            
+            Text(polygon.name)
+                .position(CGPoint(x: shapeRect.midX, y: shapeRect.midY))
+                .font(.system(size: 5))
         }
     }
+    
+    func loadImage(withFilename filename: String) -> UIImage? {
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileURL = documentsDirectory.appendingPathComponent(filename)
+        return UIImage(contentsOfFile: fileURL.path)
+    }
+    
 }
 
 struct MultiPolygonShape: Shape {

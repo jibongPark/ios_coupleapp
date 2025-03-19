@@ -10,6 +10,7 @@
 import SwiftUI
 import ComposableArchitecture
 import MapKit
+import Core
 
 struct ScalePhotoView: View {
     @Bindable var store: StoreOf<ScalePhotoReducer>
@@ -36,11 +37,11 @@ struct ScalePhotoView: View {
                                    y: centerY * store.position.y)
             
             ZStack {
-                if let uiImage = UIImage(data: store.image) {
+                if let uiImage = ImageLib.loadImageFromDocument(withFilename: store.imagePath) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .frame(width: shapeRect.width, height: shapeRect.height)
                         .scaleEffect(CGFloat(store.scale))
                         .position(position)
                         .mask {

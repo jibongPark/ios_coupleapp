@@ -49,17 +49,25 @@ public struct MapRepositoryImpl: MapRepository {
     
     public func fetchTrips() -> ComposableArchitecture.Effect<[Int : Domain.TripVO]> {
         .run { send in
+            
+            let schemaVersion: UInt64 = 3
+            
             let config = Realm.Configuration(
-                schemaVersion: 2, // Increase this number from the previous version
+                schemaVersion: schemaVersion,
                 migrationBlock: { migration, oldSchemaVersion in
-                    if oldSchemaVersion < 2 {
+                    if oldSchemaVersion < schemaVersion {
                         migration.enumerateObjects(ofType: TripDTO.className()) { oldObject, newObject in
-                            // Set default values for the new properties
-                            newObject?["scale"] = 1.0     // or another default value
-                            newObject?["centerX"] = 0.0   // default value (adjust as needed)
-                            newObject?["centerY"] = 0.0   // default value
+                            newObject?["scale"] = 1.0
+                            newObject?["centerX"] = 0.0
+                            newObject?["centerY"] = 0.0
+                            
+                            if let oldImages = oldObject?["images"] as? List<Data> {
+                                newObject?["images"] = List<String>()
+                            }
                         }
                     }
+                    
+                    
                 }
             )
             Realm.Configuration.defaultConfiguration = config

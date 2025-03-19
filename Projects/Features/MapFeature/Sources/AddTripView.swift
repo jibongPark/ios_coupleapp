@@ -15,20 +15,25 @@ struct AddTripView: View {
     @Bindable var store: StoreOf<AddTripReducer>
     
     @FocusState private var isFocused: Bool
+    @State private var isEditing: Bool = false
     
     var body: some View {
         
         WithViewStore(store, observe: { $0 }) { viewStore in
             Form {
-                DatePicker("시작일", selection: $store.startDate.sending(\.setStartDate), displayedComponents: [.date])
-                DatePicker("종료일", selection: $store.endDate.sending(\.setEndDate), in: store.startDate..., displayedComponents: [.date])
                 
-                Section(header: Text("Images")) {
+                Section(header: Text("일정")) {
+                    DatePicker("시작일", selection: $store.startDate.sending(\.setStartDate), displayedComponents: [.date])
+                    DatePicker("종료일", selection: $store.endDate.sending(\.setEndDate), in: store.startDate..., displayedComponents: [.date])
+                }
+                
+                Section(header: Text("이미지")) {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 16) {
-                            ForEach(Array(viewStore.images.enumerated()), id: \.element) { index, data in
+                            
+                            ForEach(Array(viewStore.images.enumerated()), id: \.offset) { index, object in
                                 DraggableImageItemView(
-                                    imageData: data,
+                                    imagePath: object,
                                     onLongPress: {
 //                                        store.send(.imageLongPressed(data))
                                     },
@@ -55,22 +60,19 @@ struct AddTripView: View {
                         }
                         .padding(.vertical, 4)
                     }
-                }
-
-                Button("대표 이미지 설정") {
-                    store.send(.scaleImageButtinTapped)
+                    Button("대표 이미지 설정") {
+                        store.send(.scaleImageButtonTapped)
+                    }
                 }
                 
-                TextEditor(text: $store.memo.sending(\.setMemo))
-                    .focused($isFocused)
-                
-                Button("Save") {
-                    store.send(.saveButtonTapped)
+                Section(header: Text("메모")) {
+                    TextEditor(text: $store.memo.sending(\.setMemo))
+                        .focused($isFocused)
                 }
             }
-            .onTapGesture {
-                isFocused = false
-            }
+//            .onTapGesture {
+//                isFocused = false
+//            }
         }
         .sheet(
             item: $store.scope(state: \.imagePicker, action: \.imagePicker)
@@ -87,18 +89,25 @@ struct AddTripView: View {
             }
         }
         .toolbar {
-            ToolbarItem {
-                Button("Cancel") {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("취소") {
                     store.send(.cancelButtonTapped)
                 }
             }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("저장") {
+                    store.send(.saveButtonTapped)
+                }
+            }
         }
+        .navigationTitle(Text(store.polygon.name))
     }
 }
 
 
 struct DraggableImageItemView: View {
-    let imageData: Data
+    let imagePath: String
     
     let onLongPress: () -> Void
 //    let onDragChanged: (CGSize) -> Void
@@ -110,7 +119,7 @@ struct DraggableImageItemView: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            if let uiImage = UIImage(data: imageData) {
+            if let uiImage = ImageLib.loadImageFromDocument(withFilename: imagePath) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
@@ -118,8 +127,11 @@ struct DraggableImageItemView: View {
                     .clipped()
                     .cornerRadius(8)
                     .offset(dragOffset)
+                    .onAppear {
+                        print("image rendered")
+                    }
                     .gesture(
-                        LongPressGesture(minimumDuration: 0.5)
+                        LongPressGesture(minimumDuration: 0.3)
                             .onEnded { _ in
                                 isEditing.toggle()
                                 onLongPress()
@@ -156,7 +168,6 @@ struct DraggableImageItemView: View {
                         .foregroundColor(.red)
                         .background(Color.white.clipShape(Circle()))
                 }
-                .offset(x: 10, y: -10)
             }
         }
     }

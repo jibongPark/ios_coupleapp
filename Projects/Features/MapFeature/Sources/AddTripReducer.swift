@@ -11,6 +11,7 @@ import ComposableArchitecture
 import SwiftUICore
 import Domain
 import Core
+import UIKit
 
 @Reducer
 public struct AddTripReducer {
@@ -24,13 +25,16 @@ public struct AddTripReducer {
         @Presents var scalePhoto: ScalePhotoReducer.State?
         
         let polygon: PolygonData
-        var images: [Data] = []
+        var images: [String] = []
+        var newImages: [String] = []
         var startDate: Date = Date.now
         var endDate: Date = Date.now
         var memo: String = ""
         var scale: Float = 1
         var center: CGPoint = .zero
         var tripVO: TripVO? = nil
+        
+        var isEditing: Bool = false
         
         public init(polygon: PolygonData, tripVO: TripVO? = nil) {
             self.polygon = polygon
@@ -60,8 +64,9 @@ public struct AddTripReducer {
         case deleteImage(Int)
         
         case imagePicker(PresentationAction<ImagePickerReducer.Action>)
+        case imageLongPressed
         
-        case scaleImageButtinTapped
+        case scaleImageButtonTapped
         case scaleImage(PresentationAction<ScalePhotoReducer.Action>)
     }
     
@@ -75,7 +80,9 @@ public struct AddTripReducer {
                 return .none
                 
             case .cancelButtonTapped:
-                return .run { _ in await self.dismiss() }
+                return .run { [images = state.newImages] send in
+                    await ImageLib.removeAllImagesFromDocument(witfFIlenames: images)
+                    await self.dismiss() }
                 
             case .saveButtonTapped:
                 state.tripVO = TripVO(sigunguCode: state.polygon.sigunguCode, images: state.images, startDate: state.startDate, endDate: state.endDate, memo: state.memo, scale: state.scale, center: state.center)
@@ -106,18 +113,31 @@ public struct AddTripReducer {
                 return .none
                 
             case .deleteImage(let index):
+                let path = state.images[index]
+                ImageLib.removeImageFromDocument(withFilename: path)
                 state.images.remove(at: index)
                 return .none
                 
             case .imagePicker(.presented(.delegate(.didFinishPicking(let images)))):
-                state.images = state.images + images
+                var newPaths = [String]()
+                for image in images {
+                    if let newImagePath = ImageLib.saveJPEGToDocument(image) {
+                        newPaths.append(newImagePath)
+                    }
+                }
+                state.newImages = state.newImages + newPaths
+                state.images = state.images + newPaths
                 return .none
                 
             case .imagePicker:
                 return .none
                 
-            case .scaleImageButtinTapped:
-                state.scalePhoto = ScalePhotoReducer.State(scale: state.scale, position: state.center, polygonShape: state.polygon, image: state.images[0])
+            case .imageLongPressed:
+                state.isEditing.toggle()
+                return .none
+                
+            case .scaleImageButtonTapped:
+                state.scalePhoto = ScalePhotoReducer.State(scale: state.scale, position: state.center, polygonShape: state.polygon, imagePath: state.images[0])
                 return .none
                 
             case .scaleImage(.presented(.delegate(.scaleDone(let scale, let position)))):

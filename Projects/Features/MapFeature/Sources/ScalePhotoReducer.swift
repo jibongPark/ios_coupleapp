@@ -19,7 +19,7 @@ public struct ScalePhotoReducer {
         var position: CGPoint
         
         let polygonShape: PolygonData
-        let image: Data
+        let imagePath: String
     }
     
     public enum Action {

@@ -40,14 +40,14 @@ public struct PolygonVO: Equatable {
 
 public struct TripVO: Equatable, Decodable {
     public let sigunguCode: Int
-    public let images: [Data]
+    public let images: [String]
     public let startDate: Date
     public let endDate: Date
     public let memo: String
     public let scale: Float
     public let center: CGPoint
     
-    public init(sigunguCode: Int, images: [Data], startDate: Date, endDate: Date, memo: String, scale: Float, center: CGPoint) {
+    public init(sigunguCode: Int, images: [String], startDate: Date, endDate: Date, memo: String, scale: Float, center: CGPoint) {
         self.sigunguCode = sigunguCode
         self.images = images
         self.startDate = startDate
@@ -57,7 +57,7 @@ public struct TripVO: Equatable, Decodable {
         self.center = center
     }
     
-    public func imageAtIndex(_ index: Int) -> Data? {
+    public func imageAtIndex(_ index: Int) -> String? {
         guard index >= 0 && index < images.count else { return nil }
         return images[index]
     }

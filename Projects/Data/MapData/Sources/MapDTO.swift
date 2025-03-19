@@ -14,7 +14,7 @@ import RealmSwift
 final class TripDTO: Object {
     
     @Persisted(primaryKey: true) public var sigunguCode: Int
-    @Persisted public var images: List<Data>
+    @Persisted public var images: List<String>
     @Persisted public var startDate: Date
     @Persisted public var endDate: Date
     @Persisted public var memo: String
@@ -26,7 +26,7 @@ final class TripDTO: Object {
         
     }
     
-    public init(sigunguCode: Int, images: [Data], startDate: Date, endDate: Date, memo: String, scale: Float, centerX: Float, centerY: Float) {
+    public init(sigunguCode: Int, images: [String], startDate: Date, endDate: Date, memo: String, scale: Float, centerX: Float, centerY: Float) {
         super.init()
         self.sigunguCode = sigunguCode
         self.images = List()

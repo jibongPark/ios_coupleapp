@@ -31,7 +31,7 @@ public struct ImagePickerReducer {
         case cancelButtonTapped
         case doneButtonTapped([UIImage])
         public enum Delegate: Equatable {
-            case didFinishPicking(images: [Data])
+            case didFinishPicking(images: [UIImage])
         }
     }
     
@@ -50,9 +50,9 @@ public struct ImagePickerReducer {
                 return .run { _ in await self.dismiss() }
                 
             case .doneButtonTapped(let images):
-                var datas = [Data]()
+                var datas = [UIImage]()
                 
-                datas = images.map( { $0.pngData() ?? Data()})
+                datas = images.map( { $0 })
                 
                 return .run { [datas] send in
                     await send(.delegate(.didFinishPicking(images: datas)))
@@ -80,7 +80,7 @@ public struct ImagePickerView: UIViewControllerRepresentable {
         
         picker.presentationController?.delegate = context.coordinator
     
-        picker.modalPresentationStyle = .pageSheet
+//        picker.modalPresentationStyle = .pageSheet
         
         return picker
     }
@@ -104,10 +104,17 @@ public struct ImagePickerView: UIViewControllerRepresentable {
             
             for result in results {
                 group.enter()
+                
+
                 if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
                     result.itemProvider.loadObject(ofClass: UIImage.self) { object, error in
                         if let image = object as? UIImage {
+                            
                             images.append(image)
+                            
+//                            if let imagePath = self.saveImage(image) {
+//                                images.append(imagePath)
+//                            }
                         }
                         group.leave()
                     }
@@ -123,6 +130,21 @@ public struct ImagePickerView: UIViewControllerRepresentable {
                     self.store.send(.doneButtonTapped(images))
                 }
             }
+        }
+        
+        private func saveImage(_ image: UIImage) -> String? {
+            guard let data = image.pngData() else { return nil }
+                let filename = UUID().uuidString + ".png"
+                let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                let fileURL = documentsDirectory.appendingPathComponent(filename)
+                
+                do {
+                    try data.write(to: fileURL)
+                    return fileURL.path
+                } catch {
+                    print("Error saving image: \(error)")
+                    return nil
+                }
         }
     }
 }
