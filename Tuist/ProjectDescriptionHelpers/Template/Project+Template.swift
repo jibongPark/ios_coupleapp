@@ -278,7 +278,9 @@ extension Project {
                      "Sources/**"],
             resources: [.glob(pattern: "Resources/**", excluding: [])],
             entitlements: configuration.entitlements,
-            dependencies: dependencies,
+            dependencies: [
+                .target(name: frameworkTargetName)
+            ],
             settings: configuration.setting
         )
         

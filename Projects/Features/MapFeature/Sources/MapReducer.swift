@@ -6,20 +6,20 @@ import Dependencies
 import MapData
 
 @Reducer
-public struct MapReducer {
+struct MapReducer {
     @Dependency(\.mapRepository) var mapRepository
     
-    public init() { }
+    init() { }
     
     @ObservableState
-    public struct State: Equatable {
+    struct State: Equatable {
         @Presents var addTrip: AddTripReducer.State?
         
         public var mapData: PolygonVO? = nil
         public var tripData: [Int: TripVO] = [:]
     }
     
-    public enum Action {
+    enum Action {
         case onApear
         case mapDataLoaded(PolygonVO)
         case tripDataLoaded([Int: TripVO])
@@ -27,9 +27,9 @@ public struct MapReducer {
         case addTrip(PresentationAction<AddTripReducer.Action>)
     }
     
-    public static let reducer = Self()
+    static let reducer = Self()
     
-    public var body: some Reducer<State, Action> {
+    var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
             case .onApear:
@@ -71,6 +71,5 @@ public struct MapReducer {
         .ifLet(\.$addTrip, action: \.addTrip) {
             AddTripReducer()
         }
-        
     }
 }

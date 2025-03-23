@@ -1,15 +1,16 @@
 import SwiftUI
 
+import ComposableArchitecture
+import MapFeature
+
 
 @main
 struct TestProject: App {
+    @Dependency(\.mapFeature) var mapFeature
+    
     var body: some Scene {
         WindowGroup {
-            ContentView(
-                store: .init(initialState: MapReducer.State()) {
-                    MapReducer()
-                }
-            )
+            AnyView(mapFeature.makeView())
         }
     }
 }

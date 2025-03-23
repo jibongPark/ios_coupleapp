@@ -5,8 +5,7 @@ let project = Project.configure(
     moduleType: .app,
     product: .app,
     dependencies: [
-//        .Features.Root.Feature,
-        .Modules.calendarData,
-        .external(name: "ComposableArchitecture", condition: nil)
+        .Features.Calendar.Feature,
+        .Features.Map.Feature,
     ]
 )

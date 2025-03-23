@@ -3,8 +3,9 @@ import SwiftUI
 import MapKit
 import Core
 import ComposableArchitecture
+import MapFeatureInterface
 
-struct ContentView: View {
+private struct MapView: View {
     @Bindable var store: StoreOf<MapReducer>
     
     let viewScale: CGFloat = 3
@@ -159,6 +160,31 @@ struct MultiPolygonShape: Shape {
             }
         }
         return CGPoint(x: Int(x/Double(allCount)), y: Int(y/Double(allCount)))
+    }
+}
+
+public struct MapFeature: MapFeatureInterface {
+    public init() {}
+    
+    public func makeView() -> any View {
+        AnyView(
+            MapView(
+                store: .init(initialState: MapReducer.State()) {
+                    MapReducer()
+                }
+            )
+        )
+    }
+}
+
+private enum MapFeatureKey: DependencyKey {
+    static var liveValue: MapFeatureInterface = MapFeature()
+}
+
+public extension DependencyValues {
+    var mapFeature: MapFeatureInterface {
+        get { self[MapFeatureKey.self] }
+        set { self[MapFeatureKey.self] = newValue }
     }
 }
 

@@ -17,5 +17,6 @@ let project = Project.configure(
         .external(name: "RealmSwift"),
         .external(name: "Realm"),
 //        .Modules.networkModule
-    ]
+    ],
+    hasResources: true
 )

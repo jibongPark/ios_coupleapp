@@ -14,7 +14,7 @@ public struct MapRepositoryImpl: MapRepository {
     
     public func fetchPolygons() -> Effect<PolygonVO> {
         return Effect.run { send in
-            guard let url = Bundle.main.url(forResource: "sigungu", withExtension: "geojson"),
+            guard let url = Bundle.module.url(forResource: "sigungu", withExtension: "geojson"),
                   let data = try? Data(contentsOf: url) else {
                 return
             }

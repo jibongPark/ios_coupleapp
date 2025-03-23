@@ -15,7 +15,7 @@ import DiaryFeature
 
 public struct CalendarView: View {
     
-    @Perception.Bindable var store: StoreOf<CalendarReducer>
+    @Bindable var store: StoreOf<CalendarReducer>
     
     public init(store: StoreOf<CalendarReducer>) {
         self.store = store
