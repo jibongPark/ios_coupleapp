@@ -8,6 +8,7 @@ let project = Project.configure(
         .Core.core,
         .Modules.domain,
         .Modules.mapData,
-        .external(name: "ComposableArchitecture")
+        .external(name: "ComposableArchitecture"),
+//        .external(name: "DependenciesExtrasMacros")
     ]
 )

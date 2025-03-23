@@ -10,7 +10,7 @@ import CalendarData
 import ComposableArchitecture
 import SwiftUI
 
-import DiaryFeature
+import CalendarFeatureInterface
 
 
 public struct CalendarView: View {
@@ -331,6 +331,31 @@ extension Date {
   var formattedCalendarDayDate: String {
     return Date.calendarDayDateFormatter.string(from: self)
   }
+}
+
+public struct CalendarFeature: CalendarInterface {
+    public init() {}
+    
+    public func makeView() -> any View {
+        AnyView(
+            CalendarView(
+                store: .init(initialState: CalendarReducer.State(selectedMonth: Date())) {
+                    CalendarReducer()
+                }
+            )
+        )
+    }
+}
+
+enum CalendarFeatureKey: DependencyKey {
+    static var liveValue: CalendarInterface = CalendarFeature()
+}
+
+public extension DependencyValues {
+    var calendarFeature: CalendarInterface {
+        get { self[CalendarFeatureKey.self] }
+        set { self[CalendarFeatureKey.self] = newValue }
+    }
 }
 
 struct CalendarView_Previews: PreviewProvider {

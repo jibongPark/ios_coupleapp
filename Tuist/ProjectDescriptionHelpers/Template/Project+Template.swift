@@ -1,9 +1,3 @@
-//
-//  Project+Template.swift
-//  TestProjectManifests
-//
-//  Created by Junyoung on 1/8/25.
-//
 
 import ProjectDescription
 
@@ -49,9 +43,11 @@ extension Project {
                 schemes: schemes
             )
         case let .demoapp(name):
+            
+            let demoAppName = "\(name)_demo_app"
         
             let appTarget = Target.target(
-                name: "\(name) demo app",
+                name: demoAppName,
                 destinations: configuration.destination,
                 product: .app,
                 bundleId: "\(configuration.bundleIdentifier).demo.\(name.lowercased())",
@@ -66,12 +62,12 @@ extension Project {
             targets.append(appTarget)
             
             let appScheme = Scheme.configureAppScheme(
-                schemeName: "\(name) demo app"
+                schemeName: demoAppName
             )
             schemes = appScheme
             
             return Project(
-                name: "\(name) demo app",
+                name: demoAppName,
                 organizationName: configuration.organizationName,
                 settings: configuration.setting,
                 targets: targets,
@@ -111,7 +107,7 @@ extension Project {
                 schemes.append(featureScheme)
                 
                 let demoTarget = Target.target(
-                    name: "\(name) demo app",
+                    name: "\(name)_demo_app",
                     destinations: configuration.destination,
                     product: .app,
                     bundleId: "\(configuration.bundleIdentifier).demo.\(name.lowercased())",
@@ -247,8 +243,8 @@ extension Project {
             bundleId: "\(configuration.bundleIdentifier).\(name.lowercased())Interface",
             deploymentTargets: configuration.deploymentTarget,
             infoPlist: .default,
-            sources: ["Interface/Sources/**"],
-            dependencies: dependencies
+            sources: ["Interface/Sources/**"]
+//            dependencies: dependencies
         )
         
         // Framework 타겟
@@ -261,14 +257,16 @@ extension Project {
             deploymentTargets: configuration.deploymentTarget,
             infoPlist: .default,
             sources: ["Sources/**"],
-            dependencies: [
-                .target(name: interfaceTargetName)
-            ]
+            dependencies: dependencies + [ .target(name: interfaceTargetName) ]
+//            [
+//                .target(name: interfaceTargetName),
+//                dependencies
+//            ]
         )
         
         
         let demoTarget = Target.target(
-            name: "\(name) demo app",
+            name: "\(name)_demo_app",
             destinations: configuration.destination,
             product: .app,
             bundleId: "\(configuration.bundleIdentifier).demo.\(name.lowercased())",

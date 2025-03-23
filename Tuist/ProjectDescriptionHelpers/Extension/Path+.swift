@@ -1,9 +1,4 @@
-//
-//  Path+Extension.swift
-//  ProjectDescriptionHelpers
-//
-//  Created by Junyoung on 1/8/25.
-//
+
 
 import ProjectDescription
 

@@ -1,9 +1,3 @@
-//
-//  Dependency+Domain.swift
-//  Config
-//
-//  Created by Junyoung Lee on 1/21/25.
-//
 
 import ProjectDescription
 
