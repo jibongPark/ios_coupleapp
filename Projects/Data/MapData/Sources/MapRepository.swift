@@ -66,8 +66,6 @@ public struct MapRepositoryImpl: MapRepository {
                             }
                         }
                     }
-                    
-                    
                 }
             )
             Realm.Configuration.defaultConfiguration = config
