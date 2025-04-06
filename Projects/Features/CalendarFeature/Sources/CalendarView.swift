@@ -296,7 +296,7 @@ struct CalendarView: View {
                     .font(.system(size: 10, weight: .light))
                     .padding(5)
                 
-                ForEach($todos, id: \.self) { todo in
+                ForEach($todos, id: \.id) { todo in
                     HStack(alignment: .center, spacing: 0) {
                         Toggle("", isOn: todo.isDone)
                             .toggleStyle(CheckboxToggleStyle(style: .square))
