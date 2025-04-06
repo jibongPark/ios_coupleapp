@@ -88,12 +88,18 @@ public struct CalendarRepositoryImpl: CalendarRepository {
                 let schedules = realmKit.fetchAllData(type: ScheduleDTO.self)
                     .filter("endDate >= %@ AND startDate < %@", startOfMonth, startOfNextMonth)
                 
-                let scheduleDTOs = Dictionary(grouping: schedules) { schedule in
-                    schedule.startDate.calendarKeyString
+                let scheduleVOArray = schedules.map {
+                    $0.toVO()
                 }
                 
-                let scheduleVOs = scheduleDTOs.mapValues { dtoArray in
-                    dtoArray.map { $0.toVO() }
+                var scheduleVOs = [String: [ScheduleVO]]()
+                
+                for schedule in scheduleVOArray {
+                    let keys = schedule.dateKeys()
+                    
+                    for key in keys {
+                        scheduleVOs[key, default: []].append(schedule)
+                    }
                 }
                 
                 await send(scheduleVOs)
@@ -123,18 +129,5 @@ public extension DependencyValues {
     var calendarRepository: CalendarRepository {
         get { self[CalendarRepoKey.self] }
         set { self[CalendarRepoKey.self] = newValue }
-    }
-}
-
-
-public extension Date {
-    static let calendarKeyFormatter: DateFormatter = {
-      let formatter = DateFormatter()
-      formatter.dateFormat = "YYYYMMdd"
-      return formatter
-    }()
-    
-    var calendarKeyString: String {
-      return Date.calendarKeyFormatter.string(from: self)
     }
 }

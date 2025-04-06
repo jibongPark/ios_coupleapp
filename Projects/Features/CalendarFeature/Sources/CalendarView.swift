@@ -18,6 +18,8 @@ struct CalendarView: View {
     
     @Bindable var store: StoreOf<CalendarReducer>
     
+    @State private var didAppear = false
+    
     init(store: StoreOf<CalendarReducer>) {
         self.store = store
     }
@@ -78,7 +80,7 @@ struct CalendarView: View {
                                                  isCurrentMonth: isCurrentMonth,
                                                  isSelectDate: currentDate.isEqual(to: store.selectedDate))
                                         .onTapGesture {
-                                            store.send(.selectedDateChange(date.getDate(for: index)))
+                                            store.send(.selectedDateChange(currentDate))
                                         }
                                         .frame(height: cellHeight)
                                 }
@@ -108,7 +110,10 @@ struct CalendarView: View {
                 ScheduleView(store: store)
             }
             .onAppear() {
-                store.send(.searchAllData)
+                if !didAppear {
+                    didAppear = true
+                    store.send(.searchAllData)
+                }
             }
         }
     }
@@ -200,19 +205,19 @@ struct CalendarView: View {
                                 
                                 if let todos = store.todoData[store.selectedDate.calendarKeyString] {
                                     InfoTodoView(store: store, todos: todos)
-                                        .id(store.selectedDate)
+                                        .id(todos)
                                 }
                                 
                                 if let schedules = store.scheduleData[store.selectedDate.calendarKeyString] {
-                                    
+                                    InfoScheduleView(store: store, schedules: schedules)
                                 }
-//                                InfoScheduleView(datas: datas)
                                 
                                 if let diary = store.diaryData[store.selectedDate.calendarKeyString] {
-                                    InfoDiaryView(diary: diary)
+                                    InfoDiaryView(store: store, diary: diary)
                                 }
                                 
                             }
+                            .padding(5)
                             .background(GeometryReader { proxy -> Color in
                                             DispatchQueue.main.async {
                                                 scrollOffset = -proxy.frame(in: .named("scroll")).origin.y
@@ -291,7 +296,7 @@ struct CalendarView: View {
                     .font(.system(size: 10, weight: .light))
                     .padding(5)
                 
-                ForEach($todos, id: \.id) { todo in
+                ForEach($todos, id: \.self) { todo in
                     HStack(alignment: .center, spacing: 0) {
                         Toggle("", isOn: todo.isDone)
                             .toggleStyle(CheckboxToggleStyle(style: .square))
@@ -303,6 +308,9 @@ struct CalendarView: View {
                     }
                     .padding(.bottom, 5)
                     .padding(.leading, 10)
+                    .onTapGesture {
+                        store.send(.navigateTo(.todo(todo.wrappedValue)))
+                    }
                 }
                 
             }
@@ -311,56 +319,57 @@ struct CalendarView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(Color.gray.opacity(0.5), lineWidth: 1)
             )
-            .padding(5)
         }
     }
     
     private struct InfoScheduleView: View {
-        let datas: [String]
+        let store: StoreOf<CalendarReducer>
+        let schedules: [ScheduleVO]
         
         var body: some View {
             
             LazyVStack(alignment: .leading, spacing: 0) {
-                ForEach(datas, id: \.self) { data in
+                ForEach(schedules, id: \.id) { schedule in
                     HStack(alignment: .center, spacing: 0) {
                         Circle()
                             .fill(.gray.opacity(0.75))
                             .frame(width:12, height: 12)
-                        Text(data)
-                            .padding(.leading, 8)
+                        VStack(alignment: .leading) {
+                            Text(schedule.title)
+                            
+                            Text("\(scheduleDateString(for: schedule.startDate)) - \(scheduleDateString(for: schedule.endDate))")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.leading, 8)
                     }
                     .padding(5)
-                    .padding(.leading, 20)
+                    .onTapGesture {
+                        store.send(.navigateTo(.schedule(schedule)))
+                    }
                 }
             }
-            .padding(5)
+        }
+        
+        func scheduleDateString(for date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "ko_KR")
+            formatter.dateFormat = "M.d EEE a h시"
+             
+            return formatter.string(from: date)
         }
     }
     
     private struct InfoDiaryView: View {
+        let store: StoreOf<CalendarReducer>
         let diary: DiaryVO
         
         var body: some View {
             LazyHStack {
                 Text("다이어리 : \(diary.content)")
             }
-        }
-    }
-    
-    private struct InforCellView: View {
-
-        let data: String
-        @State var isOn: Bool = false
-        
-        var body: some View {
-            HStack(alignment: .center, spacing: 0) {
-                Toggle("", isOn: $isOn)
-                    .toggleStyle(CheckboxToggleStyle(style: .square))
-                Circle()
-                    .fill(.gray.opacity(0.75))
-                    .frame(width:12, height: 12)
-                Text(data)
-                    .padding(.leading, 8)
+            .onTapGesture {
+                store.send(.navigateTo(.diary))
             }
         }
     }
@@ -406,8 +415,8 @@ struct CalendarView: View {
             if isButtonExpand {
                 VStack(spacing: 10) {
                     actionButton(title: "일기", color: .blue, action: { store.send(.navigateTo(.diary)) })
-                    actionButton(title: "할일", color: .green, action: { store.send(.navigateTo(.todo)) })
-                    actionButton(title: "일정", color: .purple, action: { store.send(.navigateTo(.schedule)) })
+                    actionButton(title: "할일", color: .green, action: { store.send(.navigateTo(.todo(nil))) })
+                    actionButton(title: "일정", color: .purple, action: { store.send(.navigateTo(.schedule(nil))) })
                 }
                 .transition(.opacity)
             }

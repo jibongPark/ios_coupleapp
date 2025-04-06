@@ -22,8 +22,8 @@ struct CalendarReducer {
     enum Route: Equatable {
         case none
         case diary
-        case schedule
-        case todo
+        case schedule(ScheduleVO?)
+        case todo(TodoVO?)
     }
     
     enum Expand: Equatable {
@@ -114,16 +114,44 @@ struct CalendarReducer {
                         )
                     )
                     
-                case .todo:
+                    return .none
+                    
+                case let .todo(todoVO):
+                    
+                    let id = todoVO?.id ?? UUID().hashValue
+                    let date = todoVO?.endDate ?? state.selectedDate
+                    let title = todoVO?.title ?? ""
+                    let content = todoVO?.memo ?? ""
+                    let isDone = todoVO?.isDone ?? false
+                    
                     state.destination = .todoView(
                         TodoReducer.State(
-                            date:state.selectedDate
+                            id: id,
+                            date:date,
+                            title: title,
+                            content: content,
+                            isDone: isDone
                         )
                     )
+                    return .none
                     
-                case .schedule:
+                case let .schedule(scheduleVO):
+                    
+                    let id = scheduleVO?.id ?? UUID().hashValue
+                    let title = scheduleVO?.title ?? ""
+                    let startDate = scheduleVO?.startDate ?? Date()
+                    let endDate = scheduleVO?.endDate ?? Date()
+                    let memo = scheduleVO?.memo ?? ""
+                    
+                    
                     state.destination = .scheduleView(
-                        ScheduleReducer.State()
+                        ScheduleReducer.State(
+                            id: id,
+                            title: title,
+                            content: memo,
+                            startDate: startDate,
+                            endDate: endDate
+                        )
                     )
                     
                 case .none:
@@ -160,8 +188,16 @@ struct CalendarReducer {
                 return .none
                 
             case let .destination(.presented(.todoView(.delegate(.addTodo(todo))))):
+                var array = state.todoData[todo.endDate.calendarKeyString, default: []]
                 
-                state.todoData[todo.endDate.calendarKeyString, default: []] += [todo]
+                if let index = array.firstIndex(where: { $0.id == todo.id }) {
+                    array[index] = todo
+                } else {
+                    array.append(todo)
+                }
+                
+                state.todoData[todo.endDate.calendarKeyString] = array
+                
                 return .none
                 
             case .destination:

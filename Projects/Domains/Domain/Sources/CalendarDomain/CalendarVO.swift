@@ -48,6 +48,26 @@ public struct ScheduleVO: Identifiable, Equatable {
     public var memo: String
 }
 
+public extension ScheduleVO {
+    func dateKeys() -> [String] {
+        let calendar = Calendar.current
+            
+        var keys: [String] = []
+        var currentDate = calendar.startOfDay(for: self.startDate)
+        let endDate = calendar.startOfDay(for: self.endDate)
+        
+        while currentDate <= endDate {
+            let key = currentDate.calendarKeyString
+            keys.append(key)
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                break
+            }
+            currentDate = nextDate
+        }
+        return keys
+    }
+}
+
 public struct DiaryVO: Identifiable, Equatable {
     
     public init(date: Date = Date(), content: String = "") {
@@ -59,4 +79,16 @@ public struct DiaryVO: Identifiable, Equatable {
     public let date: Date
     public let content: String
     
+}
+
+public extension Date {
+    static let calendarKeyFormatter: DateFormatter = {
+      let formatter = DateFormatter()
+      formatter.dateFormat = "YYYYMMdd"
+      return formatter
+    }()
+    
+    var calendarKeyString: String {
+      return Date.calendarKeyFormatter.string(from: self)
+    }
 }
