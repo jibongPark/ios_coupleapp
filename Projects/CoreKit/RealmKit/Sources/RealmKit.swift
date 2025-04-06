@@ -6,7 +6,7 @@
 //  Copyright © 2025 JIBONG PARK. All rights reserved.
 //
 
-import Dependencies
+import ComposableArchitecture
 import RealmSwift
 
 
