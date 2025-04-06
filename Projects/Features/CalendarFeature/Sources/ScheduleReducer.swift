@@ -11,7 +11,7 @@ import ComposableArchitecture
 import Domain
 
 @Reducer
-public struct DiaryReducer {
+public struct ScheduleReducer {
     
     @Dependency(\.calendarRepository) var calendarRepository
     
@@ -21,23 +21,29 @@ public struct DiaryReducer {
     
     @ObservableState
     public struct State: Equatable {
-        public init(date: Date, content: String = "") {
-            self.date = date
+        public init(id: Int = UUID().hashValue, title: String = "", content: String = "", startDate: Date = Date(), endDate: Date = Date()) {
+            self.id = id
+            self.title = title
             self.content = content
+            self.startDate = startDate
+            self.endDate = endDate
         }
         
-        var date: Date
+        var id: Int
+        var title: String
+        var startDate: Date
+        var endDate: Date
         var content: String
     }
     
     public enum Action: BindableAction, Equatable {
         case delegate(Delegate)
         case binding(BindingAction<State>)
-        case confirmButtonTapped
-        case saveDiary(DiaryVO)
+        case saveButtonTapped
+        case saveSchedule(ScheduleVO)
         
         public enum Delegate: Equatable {
-            case addDiary(DiaryVO)
+            case addSchedule(ScheduleVO)
         }
     }
     
@@ -52,16 +58,17 @@ public struct DiaryReducer {
             case .delegate:
                 return .none
                 
-            case .confirmButtonTapped:
-                let diaryVO = DiaryVO(date: state.date, content: state.content)
-                return .run { [diaryVO = diaryVO] send in
-                    await send(.saveDiary(diaryVO))
-                    await send(.delegate(.addDiary(diaryVO)))
+            case .saveButtonTapped:
+                let scheduleVO = ScheduleVO(id: state.id, title: state.title, startDate: state.startDate, endDate: state.endDate, memo: state.content)
+                
+                return .run { [scheduleVO = scheduleVO] send in
+                    await send(.saveSchedule(scheduleVO))
+                    await send(.delegate(.addSchedule(scheduleVO)))
                     await self.dismiss()
                 }
                 
-            case .saveDiary(let diaryVO):
-                calendarRepository.updateDiary(diaryVO)
+            case .saveSchedule(let schedule):
+                calendarRepository.updateSchedule(schedule)
                 return .none
                 
             case .binding(_):

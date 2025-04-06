@@ -8,81 +8,161 @@
 
 import Foundation
 import ComposableArchitecture
+import Domain
 
 @Reducer
-public struct CalendarReducer {
+struct CalendarReducer {
     
-    public init() {
+    @Dependency(\.calendarRepository) var calendarRepository
+    
+    init() {
         
     }
     
-    public enum Route: Equatable {
+    enum Route: Equatable {
         case none
         case diary
         case schedule
         case todo
     }
     
-    @Reducer(state: .equatable)
-    public enum Path {
-        case diaryView(DiaryReducer)
-        case testView
+    enum Expand: Equatable {
+        case half
+        case full
+        case none
     }
     
     @ObservableState
-    public struct State: Equatable {
+    struct State: Equatable {
         
-        public init(selectedMonth: Date?) {
+        init(selectedMonth: Date?) {
             self.selectedMonth = selectedMonth ?? Date()
         }
         
+        var todoData: [String: [TodoVO]] = [:]
+        var diaryData: [String: DiaryVO] = [:]
+        var scheduleData: [String: [ScheduleVO]] = [:]
         
-        public var selectedMonth: Date
-        public var selectedDate: Date = Date()
+        
+        var selectedMonth: Date
+        var selectedDate: Date = Date()
         var route: Route = .none
-        var path = StackState<Path.State>()
         
-        @Presents public var destination: Destination.State?
+        @Presents var destination: Destination.State?
     }
     
-    public enum Action {
+    enum Action {
         case destination(PresentationAction<Destination.Action>)
         case searchAllData
+        case diaryDataLoaded([String: DiaryVO])
+        case todoDataLoaded([String: [TodoVO]])
+        case scheduleDataLoaded([String: [ScheduleVO]])
         case navigateTo(Route)
         case selectedMonthChange(Date)
         case selectedDateChange(Date)
-        case path(StackActionOf<Path>)
+        
+        case todoDidToggle(TodoVO)
     }
     
-    public static let reducer = Self()
+    static let reducer = Self()
     
-    public var body: some Reducer<State, Action> {
+    var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
                 
             case .searchAllData:
+                
+                let month = state.selectedMonth
+                
+                return .merge(
+                    calendarRepository.fetchDiary(ofMonth: month)
+                        .map { @Sendable diaryVOs in
+                            Action.diaryDataLoaded(diaryVOs)
+                        },
+                    calendarRepository.fetchTodo(ofMonth: month)
+                        .map { @Sendable todoVOs in
+                            Action.todoDataLoaded(todoVOs)
+                        },
+                    calendarRepository.fetchSchedule(ofMonth: month)
+                        .map { @Sendable scheduleVOs in
+                            Action.scheduleDataLoaded(scheduleVOs)
+                        }
+                )
+            case .diaryDataLoaded(let diaryDatas):
+                state.diaryData = diaryDatas
+                return .none
+                
+            case .todoDataLoaded(let todoDatas):
+                state.todoData = todoDatas
+                return .none
+                
+            case .scheduleDataLoaded(let scheduleDatas):
+                state.scheduleData = scheduleDatas
                 return .none
                 
             case let .navigateTo(navigateType):
-                state.destination = .diaryView(
-                    DiaryReducer.State(
-                        date:state.selectedDate
+                
+                switch navigateType {
+                case .diary:
+                    
+                    let content = state.diaryData[state.selectedDate.calendarKeyString]?.content ?? ""
+                    
+                    state.destination = .diaryView(
+                        DiaryReducer.State(
+                            date:state.selectedDate,
+                            content: content
+                        )
                     )
-                )
+                    
+                case .todo:
+                    state.destination = .todoView(
+                        TodoReducer.State(
+                            date:state.selectedDate
+                        )
+                    )
+                    
+                case .schedule:
+                    state.destination = .scheduleView(
+                        ScheduleReducer.State()
+                    )
+                    
+                case .none:
+                    break
+                }
+                
                 return .none
             case let .selectedMonthChange(month):
                 state.selectedMonth = month
-                return .none
+                
+                if(month.month != state.selectedDate.month) {
+                    state.selectedDate = month.getDate(for: 0)
+                }
+                return .run { send in
+                    await send(.searchAllData)
+                }
+                
             case let .selectedDateChange(date):
                 state.selectedDate = date
-                return .none
-            case let .path(action):
-                
-                state.path.append(.diaryView(DiaryReducer.State(date: Date())))
                 
                 return .none
                 
-                //             case let .destination(.presented(.diaryView(<#T##DiaryReducer.Action#>)(<#T##DiaryReducer.Action#>)(.delegate(.)))):
+            case let .todoDidToggle(todo):
+                calendarRepository.updateTodo(todo)
+                return .none
+                
+            case let .destination(.presented(.diaryView(.delegate(.addDiary(diary))))):
+                state.diaryData[diary.date.calendarKeyString] = diary
+                return .none
+                
+            case let .destination(.presented(.scheduleView(.delegate(.addSchedule(schedule))))):
+                
+                state.scheduleData[schedule.startDate.calendarKeyString, default: []] += [schedule]
+                return .none
+                
+            case let .destination(.presented(.todoView(.delegate(.addTodo(todo))))):
+                
+                state.todoData[todo.endDate.calendarKeyString, default: []] += [todo]
+                return .none
                 
             case .destination:
                 return .none
@@ -97,6 +177,8 @@ extension CalendarReducer {
     @Reducer
     public enum Destination {
         case diaryView(DiaryReducer)
+        case todoView(TodoReducer)
+        case scheduleView(ScheduleReducer)
     }
 }
 

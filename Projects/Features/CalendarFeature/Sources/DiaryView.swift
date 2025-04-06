@@ -5,45 +5,46 @@ import ComposableArchitecture
 
 public struct DiaryView : View {
     
-    let store: StoreOf<DiaryReducer>
+    @Bindable var store: StoreOf<DiaryReducer>
     
     public init(store: StoreOf<DiaryReducer>) {
         self.store = store
     }
     
     public var body: some View {
-        WithViewStore(self.store, observe: { $0 }) { viewStore in
-            VStack {
-                Spacer()
-                Text("diary")
-                HStack {
-                    Button(
-                        action: { },
-                        label: {
-                            Text("Confirm")
-                        }
-                    )
-                }
-                Spacer()
-                Text("date")
-                Spacer()
-                TextEditor(text: viewStore.$content)
-                    .overlay(alignment: .topLeading) {
+        VStack {
+            Spacer()
+            
+            TextEditor(text: $store.content)
+                .overlay(alignment: .center) {
+                    if(store.content.isEmpty) {
                         Text("내용을 입력해 주세요")
-                            .foregroundStyle(viewStore.content.isEmpty ? .gray : .clear)
+                            .foregroundStyle(store.content.isEmpty ? .gray.opacity(0.5) : .clear)
                     }
-                    
+                }
+        }
+        .toolbar {
+            
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 1) {
+                    Text("일기")
+                    Text(store.date.formattedCalendarDayDate)
+                }
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("저장") {
+                    store.send(.confirmButtonTapped)
+                }
             }
         }
     }
 }
 
-struct DiaryView_Previews: PreviewProvider {
-    static var previews: some View {
-        DiaryView(
-            store: Store(initialState: DiaryReducer.State(date: Date())) {
-                DiaryReducer()
-            }
-        )
-    }
+#Preview {
+    DiaryView(
+        store: Store(initialState: DiaryReducer.State(date: Date())) {
+            DiaryReducer()
+        }
+    )
 }

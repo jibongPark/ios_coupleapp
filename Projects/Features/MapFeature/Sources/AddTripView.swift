@@ -127,9 +127,6 @@ struct DraggableImageItemView: View {
                     .clipped()
                     .cornerRadius(8)
                     .offset(dragOffset)
-                    .onAppear {
-                        print("image rendered")
-                    }
                     .gesture(
                         LongPressGesture(minimumDuration: 0.3)
                             .onEnded { _ in

@@ -11,33 +11,39 @@ import ComposableArchitecture
 import Domain
 
 @Reducer
-public struct DiaryReducer {
+struct TodoReducer {
     
     @Dependency(\.calendarRepository) var calendarRepository
     
-    public init() {
+    init() {
         
     }
     
     @ObservableState
-    public struct State: Equatable {
-        public init(date: Date, content: String = "") {
+    struct State: Equatable {
+        init(id: Int = UUID().hashValue, date: Date, title: String = "", content: String = "", isDone: Bool = false) {
+            self.id = id
             self.date = date
+            self.title = title
             self.content = content
+            self.isDone = isDone
         }
         
+        var id: Int
         var date: Date
+        var title: String
         var content: String
+        var isDone: Bool
     }
     
     public enum Action: BindableAction, Equatable {
         case delegate(Delegate)
         case binding(BindingAction<State>)
-        case confirmButtonTapped
-        case saveDiary(DiaryVO)
+        case saveButtonTapped
+        case saveTodo(TodoVO)
         
         public enum Delegate: Equatable {
-            case addDiary(DiaryVO)
+            case addTodo(TodoVO)
         }
     }
     
@@ -52,16 +58,16 @@ public struct DiaryReducer {
             case .delegate:
                 return .none
                 
-            case .confirmButtonTapped:
-                let diaryVO = DiaryVO(date: state.date, content: state.content)
-                return .run { [diaryVO = diaryVO] send in
-                    await send(.saveDiary(diaryVO))
-                    await send(.delegate(.addDiary(diaryVO)))
+            case .saveButtonTapped:
+                let todoVO = TodoVO(id: state.id, title: state.title, memo: state.content, endDate: state.date, isDone: state.isDone)
+                return .run { [todoVO = todoVO] send in
+                    await send(.saveTodo(todoVO))
+                    await send(.delegate(.addTodo(todoVO)))
                     await self.dismiss()
                 }
                 
-            case .saveDiary(let diaryVO):
-                calendarRepository.updateDiary(diaryVO)
+            case .saveTodo(let todoVO):
+                calendarRepository.updateTodo(todoVO)
                 return .none
                 
             case .binding(_):
