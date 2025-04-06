@@ -5,7 +5,9 @@ let project = Project.configure(
     moduleType: .module(name: "CalendarData"),
     product: .framework,
     dependencies: [
-        .Core.sqlite
-//        .Modules.networkModule
+        .Modules.domain,
+        .Core.realmKit,
+        .external(name: "RealmSwift"),
+        .external(name: "Realm"),
     ]
 )
