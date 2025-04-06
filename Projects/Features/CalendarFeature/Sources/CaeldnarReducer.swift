@@ -139,8 +139,8 @@ struct CalendarReducer {
                     
                     let id = scheduleVO?.id ?? UUID().hashValue
                     let title = scheduleVO?.title ?? ""
-                    let startDate = scheduleVO?.startDate ?? Date()
-                    let endDate = scheduleVO?.endDate ?? Date()
+                    let startDate = scheduleVO?.startDate ?? state.selectedDate
+                    let endDate = scheduleVO?.endDate ?? state.selectedDate
                     let memo = scheduleVO?.memo ?? ""
                     
                     
