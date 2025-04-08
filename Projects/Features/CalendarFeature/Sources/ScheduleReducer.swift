@@ -9,6 +9,7 @@
 import Foundation
 import ComposableArchitecture
 import Domain
+import SwiftUICore
 
 @Reducer
 public struct ScheduleReducer {
@@ -21,12 +22,13 @@ public struct ScheduleReducer {
     
     @ObservableState
     public struct State: Equatable {
-        public init(id: Int = UUID().hashValue, title: String = "", content: String = "", startDate: Date = Date(), endDate: Date = Date()) {
+        public init(id: Int = UUID().hashValue, title: String = "", content: String = "", startDate: Date = Date(), endDate: Date = Date(), color: Color = .blue) {
             self.id = id
             self.title = title
             self.content = content
             self.startDate = startDate
             self.endDate = endDate
+            self.color = color
         }
         
         var id: Int
@@ -34,6 +36,7 @@ public struct ScheduleReducer {
         var startDate: Date
         var endDate: Date
         var content: String
+        var color: Color
     }
     
     public enum Action: BindableAction, Equatable {
@@ -59,7 +62,7 @@ public struct ScheduleReducer {
                 return .none
                 
             case .saveButtonTapped:
-                let scheduleVO = ScheduleVO(id: state.id, title: state.title, startDate: state.startDate, endDate: state.endDate, memo: state.content)
+                let scheduleVO = ScheduleVO(id: state.id, title: state.title, startDate: state.startDate, endDate: state.endDate, memo: state.content, color: state.color)
                 
                 return .run { [scheduleVO = scheduleVO] send in
                     await send(.saveSchedule(scheduleVO))

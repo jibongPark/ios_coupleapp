@@ -9,6 +9,7 @@
 import Foundation
 import ComposableArchitecture
 import Domain
+import SwiftUICore
 
 @Reducer
 struct TodoReducer {
@@ -21,12 +22,13 @@ struct TodoReducer {
     
     @ObservableState
     struct State: Equatable {
-        init(id: Int = UUID().hashValue, date: Date, title: String = "", content: String = "", isDone: Bool = false) {
+        init(id: Int = UUID().hashValue, date: Date, title: String = "", content: String = "", isDone: Bool = false, color: Color = .blue) {
             self.id = id
             self.date = date
             self.title = title
             self.content = content
             self.isDone = isDone
+            self.color = color
         }
         
         var id: Int
@@ -34,6 +36,7 @@ struct TodoReducer {
         var title: String
         var content: String
         var isDone: Bool
+        var color: Color
     }
     
     public enum Action: BindableAction, Equatable {
@@ -59,7 +62,7 @@ struct TodoReducer {
                 return .none
                 
             case .saveButtonTapped:
-                let todoVO = TodoVO(id: state.id, title: state.title, memo: state.content, endDate: state.date, isDone: state.isDone)
+                let todoVO = TodoVO(id: state.id, title: state.title, memo: state.content, endDate: state.date, isDone: state.isDone, color: state.color)
                 return .run { [todoVO = todoVO] send in
                     await send(.saveTodo(todoVO))
                     await send(.delegate(.addTodo(todoVO)))

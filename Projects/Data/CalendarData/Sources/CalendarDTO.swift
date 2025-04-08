@@ -10,6 +10,7 @@ import Foundation
 import Domain
 
 import RealmSwift
+import SwiftUICore
 
 final class TodoDTO: Object {
     
@@ -18,6 +19,7 @@ final class TodoDTO: Object {
     @Persisted public var memo: String
     @Persisted public var endDate: Date
     @Persisted public var isDone: Bool
+    @Persisted public var color: Int
     
     public override init() {
         
@@ -39,10 +41,11 @@ final class TodoDTO: Object {
         self.memo = vo.memo
         self.endDate = vo.endDate
         self.isDone = vo.isDone
+        self.color = vo.color.toInt()
     }
     
     public func toVO() -> TodoVO {
-        return TodoVO(id: id, title: title, memo: memo, endDate: endDate, isDone: isDone)
+        return TodoVO(id: id, title: title, memo: memo, endDate: endDate, isDone: isDone, color: Color(int:color))
     }
 }
 
@@ -53,6 +56,7 @@ final class ScheduleDTO: Object {
     @Persisted public var startDate: Date
     @Persisted public var endDate: Date
     @Persisted public var memo: String
+    @Persisted public var color: Int
     
     public override init() {
     }
@@ -73,10 +77,11 @@ final class ScheduleDTO: Object {
         self.memo = vo.memo
         self.startDate = vo.startDate
         self.endDate = vo.endDate
+        self.color = vo.color.toInt()
     }
     
     public func toVO() -> ScheduleVO {
-        return ScheduleVO(id: id, title: title, startDate: startDate, endDate: endDate, memo: memo)
+        return ScheduleVO(id: id, title: title, startDate: startDate, endDate: endDate, memo: memo, color: Color(int:color))
     }
 }
 

@@ -123,6 +123,7 @@ struct CalendarReducer {
                     let title = todoVO?.title ?? ""
                     let content = todoVO?.memo ?? ""
                     let isDone = todoVO?.isDone ?? false
+                    let color = todoVO?.color ?? .blue
                     
                     state.destination = .todoView(
                         TodoReducer.State(
@@ -130,7 +131,8 @@ struct CalendarReducer {
                             date:date,
                             title: title,
                             content: content,
-                            isDone: isDone
+                            isDone: isDone,
+                            color: color
                         )
                     )
                     return .none
@@ -142,6 +144,7 @@ struct CalendarReducer {
                     let startDate = scheduleVO?.startDate ?? state.selectedDate
                     let endDate = scheduleVO?.endDate ?? state.selectedDate
                     let memo = scheduleVO?.memo ?? ""
+                    let color = scheduleVO?.color ?? .blue
                     
                     
                     state.destination = .scheduleView(
@@ -150,7 +153,8 @@ struct CalendarReducer {
                             title: title,
                             content: memo,
                             startDate: startDate,
-                            endDate: endDate
+                            endDate: endDate,
+                            color: color
                         )
                     )
                     

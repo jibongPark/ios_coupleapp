@@ -16,8 +16,13 @@ public struct ScheduleView : View {
         VStack {
             Divider()
             
-            TextField("일정을 입력하세요.", text: $store.title)
-                .font(.title2.bold())
+            HStack {
+                TextField("일정을 입력하세요.", text: $store.title)
+                    .font(.title2.bold())
+                
+                ColorPicker("", selection: $store.color)
+                    .frame(maxWidth: 50)
+            }
             Divider()
             
             DatePicker("시작일", selection: $store.startDate, displayedComponents: [.date, .hourAndMinute])

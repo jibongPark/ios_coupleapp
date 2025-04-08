@@ -78,11 +78,16 @@ struct CalendarView: View {
                                     
                                     DateCellView(date: currentDate,
                                                  isCurrentMonth: isCurrentMonth,
-                                                 isSelectDate: currentDate.isEqual(to: store.selectedDate))
-                                        .onTapGesture {
-                                            store.send(.selectedDateChange(currentDate))
-                                        }
-                                        .frame(height: cellHeight)
+                                                 isSelectDate: currentDate.isEqual(to: store.selectedDate),
+                                                 todos: store.todoData[currentDate.calendarKeyString],
+                                                 schedules: store.scheduleData[currentDate.calendarKeyString],
+                                                 diary: store.diaryData[currentDate.calendarKeyString]
+                                                 
+                                    )
+                                    .frame(height: cellHeight)
+                                    .onTapGesture {
+                                        store.send(.selectedDateChange(currentDate))
+                                    }
                                 }
                             }
                             .padding([.leading, .trailing], sidePadding)
@@ -93,7 +98,7 @@ struct CalendarView: View {
                     
                 }
                 
-                InforView(store: store)
+                InfoView(store: store)
                 
                 expandableButton
                     .padding(.trailing, 10)
@@ -123,44 +128,103 @@ struct CalendarView: View {
         let isCurrentMonth: Bool
         let isSelectDate: Bool
         
+        let todos: [TodoVO]?
+        let schedules: [ScheduleVO]?
+        let diary: DiaryVO?
+        
         var body: some View {
             
             GeometryReader { geometry in
                 VStack(alignment: .center, spacing: 2) {
-                    
-                    
                     
                     let color = date.getColorOfDate()
                     
                     if date.isToday() {
                         Text("\(date.day)")
                             .font(.system(size: 13, weight: .bold, design: .default))
-                            .padding(4)
                             .foregroundColor(.white)
-                            .background(Color.red.opacity(isCurrentMonth ? 0.95 : 0.3))
-                            .cornerRadius(14)
+                            .background(
+                                Circle()
+                                    .fill(Color.red.opacity(isCurrentMonth ? 0.95 : 0.3))
+                                    .frame(width: 23, height: 23)
+                            )
+                            .padding(EdgeInsets(top: 4, leading: 4, bottom: 2, trailing: 4))
+                        
                     } else if isSelectDate {
                         Text("\(date.day)")
                             .font(.system(size: 13, weight: .bold, design: .default))
-                            .padding(4)
                             .foregroundColor(color)
-                            .background(Color.gray.opacity(0.5))
-                            .cornerRadius(14)
+                            .background(
+                                Circle()
+                                    .fill(Color.gray.opacity(0.5))
+                                    .frame(width: 23, height: 23)
+                            )
+                            .padding(EdgeInsets(top: 4, leading: 4, bottom: 2, trailing: 4))
                     } else {
                         Text("\(date.day)")
                             .font(.system(size: 13, weight: .bold, design: .default))
                             .foregroundColor(color)
                             .opacity(isCurrentMonth ? 1 : 0.3)
-                            .padding(4)
+                            .padding(EdgeInsets(top: 4, leading: 4, bottom: 2, trailing: 4))
                     }
                     
+                    // FIXME: todos, schedules를 하나의 배열로 합쳐서 처리할경우 컴파일러 타입추론 시간이 길어져 에러 발생... DetailView에서 처리하도록 처리
+                    DateCellDetailView(todos: todos,
+                                       schedules: schedules,
+                                       isCurrentMonth: isCurrentMonth
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
     }
     
-    private struct InforView: View {
+    private struct DateCellDetailView: View {
+        let todos: [TodoVO]?
+        let schedules: [ScheduleVO]?
+        let isCurrentMonth: Bool
+        
+        var body: some View {
+            let calendarItems: [CalendarVO] = (schedules ?? []) + (todos ?? [])
+
+            GeometryReader { geometry in
+                
+                let rowHeight: CGFloat = 15
+                let availableRows = Int(geometry.size.height / rowHeight) - 1
+                let visibleItems = Array(calendarItems.prefix(availableRows))
+                let extraCount = calendarItems.count - visibleItems.count
+                
+                VStack(spacing: 1) {
+                    ForEach(visibleItems, id: \.id) { item in
+                        ZStack {
+                            Text(item.title)
+                                .lineLimit(1)
+                                .foregroundColor(.white)
+                                .font(.system(size: 8, weight: .bold, design: .default))
+                                .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
+                                .frame(width: geometry.size.width, alignment: .center)
+                                .background(item.color)
+                                .opacity(isCurrentMonth ? 1 : 0.3)
+                        }
+                    }
+                    
+                    if extraCount > 0 {
+                                Text("+\(extraCount)")
+                                    .lineLimit(1)
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 8, weight: .bold, design: .default))
+                                    .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
+                                    .frame(width: geometry.size.width, alignment: .center)
+                                    .background(Color.red)
+                                    .opacity(isCurrentMonth ? 1 : 0.3)
+                            }
+                }
+            }
+        }
+    }
+    
+    private struct InfoView: View {
         let store: StoreOf<CalendarReducer>
         
         @State private var spacerHeight: CGFloat = 300  // 초기 높이

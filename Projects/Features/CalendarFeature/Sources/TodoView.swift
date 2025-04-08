@@ -17,8 +17,14 @@ struct TodoView : View {
             
             VStack(spacing: 10) {
                 
-                TextField("할 일을 입력하세요.", text: $store.title)
-                    .font(.title2.bold())
+                HStack {
+                    TextField("할 일을 입력하세요.", text: $store.title)
+                        .font(.title2.bold())
+                    
+                    ColorPicker("", selection: $store.color)
+                        .frame(maxWidth: 50)
+                }
+                
                 Divider()
                 HStack {
                     DatePicker("종료일", selection: $store.date, displayedComponents: [.date])

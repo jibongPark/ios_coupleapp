@@ -9,6 +9,7 @@ import SwiftUI
 import Domain
 import ComposableArchitecture
 import RealmKit
+import RealmSwift
 
 
 public struct CalendarRepositoryImpl: CalendarRepository {
@@ -18,6 +19,24 @@ public struct CalendarRepositoryImpl: CalendarRepository {
     public init() {}
     
     public func fetchTodo(ofMonth: Date) -> ComposableArchitecture.Effect<[String : [Domain.TodoVO]]> {
+        
+        let schemaVersion: UInt64 = 3
+        
+        let config = Realm.Configuration(
+            schemaVersion: schemaVersion,
+            migrationBlock: { migration, oldSchemaVersion in
+                if oldSchemaVersion < schemaVersion {
+                    migration.enumerateObjects(ofType: ScheduleDTO.className()) { oldObject, newObject in
+                        newObject?["color"] = 0
+                    }
+                    
+                    migration.enumerateObjects(ofType: TodoDTO.className()) { oldObject, newObject in
+                        newObject?["color"] = 0
+                    }
+                }
+            }
+        )
+        Realm.Configuration.defaultConfiguration = config
         
         let calendar = Calendar.current
         
