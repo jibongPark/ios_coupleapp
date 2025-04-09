@@ -18,7 +18,7 @@ public struct AppConfiguration {
     let organizationName = "JIBONG PARK"
     let shortVersion: String = "1.0.0"
     let bundleIdentifier: String = "com.bongbong.coupleapp-ios"
-    let displayName: String = "커플 앱"
+    let displayName: String = "Memory Box"
     let destination: Set<Destination> = [.iPhone, .iPad]
     var entitlements: Entitlements? = nil
     let deploymentTarget: DeploymentTargets = .iOS("17.0")

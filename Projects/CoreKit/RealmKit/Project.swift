@@ -12,6 +12,7 @@ let project = Project.configure(
     moduleType: .module(name: "RealmKit"),
     product: .framework,
     dependencies: [
+        .external(name: "ComposableArchitecture"),
         .external(name: "RealmSwift"),
         .external(name: "Realm")
     ]
