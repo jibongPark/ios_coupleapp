@@ -20,8 +20,9 @@
 
 ## 🚀 설치 및 실행
 
-### iOS *(심사중)*
+### iOS 
 App Store에서 "MemoryBox"를 검색하거나, 아래 링크를 통해 설치하세요.  
+https://apps.apple.com/us/app/memorybox/id6744348057
 
 ### Android *(예정)*
 Google Play 출시 예정입니다.
