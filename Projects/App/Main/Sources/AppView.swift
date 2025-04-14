@@ -25,16 +25,22 @@ struct AppView: View {
             
             AnyView(mapFeature.makeView())
                 .tabItem {
+                    Image(systemName: "map")
                     Text("여행지도")
                 }
             AnyView(calendarFeature.makeView())
                 .tabItem {
+                    Image(systemName: "calendar")
                     Text("캘린더")
                 }
             AnyView(widgetFeature.makeView())
                 .tabItem {
+                    Image(systemName: "widget.small")
                     Text("위젯")
                 }
+        }
+        .onAppear() {
+            UITabBar.appearance().scrollEdgeAppearance = .init()
         }
     }
 }

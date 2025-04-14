@@ -88,8 +88,6 @@ struct AddDDayReducer {
                     state.imagePath = ImageLib.saveJPEGToGroup(image, imageName: String(state.id), groupName: "group.com.bongbong.coupleapp")
                 }
                 
-                let _ = print("imageSize : \(state.image?.size ?? CGSize.zero)")
-                
                 let widgetVO = WidgetVO(id: state.id, title: state.title, memo: "", startDate: state.startDate, imagePath: state.imagePath, alignment: .center)
                 return .run { [widgetVO] send in
                     await send(.delegate(.addDDayData(widgetVO)))

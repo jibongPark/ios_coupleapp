@@ -9,6 +9,7 @@
 import Foundation
 import ComposableArchitecture
 import Domain
+import Core
 
 @Reducer
 struct CalendarReducer {
@@ -62,6 +63,9 @@ struct CalendarReducer {
         case selectedDateChange(Date)
         
         case todoDidToggle(TodoVO)
+        
+        case didTapMonth
+        case didTapGotoToday
     }
     
     static let reducer = Self()
@@ -182,6 +186,15 @@ struct CalendarReducer {
                 calendarRepository.updateTodo(todo)
                 return .none
                 
+            case .didTapMonth:
+                state.destination = .datePickerView(DatePickerReducer.State(date: state.selectedDate))
+                return .none
+                
+            case .didTapGotoToday:
+                state.selectedDate = Date()
+                state.selectedMonth = Date()
+                return .none
+                
             case let .destination(.presented(.diaryView(.delegate(.addDiary(diary))))):
                 state.diaryData[diary.date.calendarKeyString] = diary
                 return .none
@@ -199,9 +212,11 @@ struct CalendarReducer {
                 } else {
                     array.append(todo)
                 }
+                return .none
                 
-                state.todoData[todo.endDate.calendarKeyString] = array
-                
+            case .destination(.presented(.datePickerView(.delegate(.didFinishPicking(let date))))):
+                state.selectedDate = date
+                state.selectedMonth = date
                 return .none
                 
             case .destination:
@@ -219,6 +234,7 @@ extension CalendarReducer {
         case diaryView(DiaryReducer)
         case todoView(TodoReducer)
         case scheduleView(ScheduleReducer)
+        case datePickerView(DatePickerReducer)
     }
 }
 

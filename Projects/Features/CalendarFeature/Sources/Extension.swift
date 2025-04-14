@@ -58,6 +58,10 @@ extension Date {
         return self.formattedCalendarDayDate == Date().formattedCalendarDayDate
     }
     
+    func isEqualTo(month date: Date) -> Bool {
+        return self.year == date.year && self.month == date.month
+    }
+    
     func isEqual(to date: Date) -> Bool {
         return self.formattedCalendarDayDate == date.formattedCalendarDayDate
     }
@@ -78,10 +82,18 @@ extension Date {
         return Calendar.current.component(.month, from: self)
     }
     
+    var year: Int {
+        return Calendar.current.component(.year, from: self)
+    }
+    
     var weekDay: String {
         let weekDays: [String] = Calendar.current.shortWeekdaySymbols
         
         return weekDays[Calendar.current.component(.weekday, from: self) - 1]
+    }
+    
+    func isSunday() -> Bool {
+        return Calendar.current.component(.weekday, from: self) == 1
     }
     
     

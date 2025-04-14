@@ -12,6 +12,7 @@ import SwiftUI
 
 import CalendarFeatureInterface
 import Domain
+import Core
 
 
 struct CalendarView: View {
@@ -33,13 +34,27 @@ struct CalendarView: View {
                 
                 
                 ZStack(alignment: .top) {
-                    VStack(spacing: 5) {
+                    VStack(spacing: 0) {
                         
                         // MARK: 헤더 뷰 + 캘린더 뷰
                         
-                        Text(store.selectedMonth.formattedCalendarMonthDate)
-                            .font(.title.bold())
-                            .padding(.bottom, 5)
+                        VStack(spacing: 0) {
+                            Text(store.selectedMonth.formattedCalendarMonthDate)
+                                .font(.title.bold())
+                                .onTapGesture() {
+                                    store.send(.didTapMonth)
+                                }
+                            
+                            if(!store.selectedDate.isEqualTo(month: Date())) {
+                                Text("현재 날짜로 이동")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                                    .onTapGesture() {
+                                        store.send(.didTapGotoToday)
+                                    }
+                            }
+                        }
+                        .frame(height: proxy.size.height / 20)
                         
                         HStack {
                             ForEach(Self.weekdaySymbols.indices, id: \.self) { symbol in
@@ -49,6 +64,7 @@ struct CalendarView: View {
                             }
                         }
                         .padding([.leading, .trailing], sidePadding)
+                        .frame(height: proxy.size.height / 20)
                         
                         Divider()
                         
@@ -114,6 +130,9 @@ struct CalendarView: View {
             .navigationDestination(item: $store.scope(state: \.destination?.scheduleView, action: \.destination.scheduleView)) { store in
                 ScheduleView(store: store)
             }
+            .resizingSheet(item: $store.scope(state: \.destination?.datePickerView, action: \.destination.datePickerView)) { store in
+                DatePickerView(store: store)
+            }
             .onAppear() {
                 if !didAppear {
                     didAppear = true
@@ -169,7 +188,8 @@ struct CalendarView: View {
                     }
                     
                     // FIXME: todos, schedules를 하나의 배열로 합쳐서 처리할경우 컴파일러 타입추론 시간이 길어져 에러 발생... DetailView에서 처리하도록 처리
-                    DateCellDetailView(todos: todos,
+                    DateCellDetailView(date: date,
+                                       todos: todos,
                                        schedules: schedules,
                                        isCurrentMonth: isCurrentMonth
                     )
@@ -181,6 +201,7 @@ struct CalendarView: View {
     }
     
     private struct DateCellDetailView: View {
+        let date: Date
         let todos: [TodoVO]?
         let schedules: [ScheduleVO]?
         let isCurrentMonth: Bool
@@ -198,27 +219,29 @@ struct CalendarView: View {
                 VStack(spacing: 1) {
                     ForEach(visibleItems, id: \.id) { item in
                         ZStack {
-                            Text(item.title)
+                            let title = (item.startDate.isEqual(to: date) || date.isSunday()) ? item.title : ""
+                            
+                            Text(title)
                                 .lineLimit(1)
                                 .foregroundColor(.white)
-                                .font(.system(size: 8, weight: .bold, design: .default))
+                                .font(.system(size: 6, weight: .bold, design: .default))
                                 .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
-                                .frame(width: geometry.size.width, alignment: .center)
+                                .frame(width: geometry.size.width, height: 8, alignment: .center)
                                 .background(item.color)
                                 .opacity(isCurrentMonth ? 1 : 0.3)
                         }
                     }
                     
                     if extraCount > 0 {
-                                Text("+\(extraCount)")
-                                    .lineLimit(1)
-                                    .foregroundColor(.white)
-                                    .font(.system(size: 8, weight: .bold, design: .default))
-                                    .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
-                                    .frame(width: geometry.size.width, alignment: .center)
-                                    .background(Color.red)
-                                    .opacity(isCurrentMonth ? 1 : 0.3)
-                            }
+                        Text("+\(extraCount)")
+                            .lineLimit(1)
+                            .foregroundColor(.white)
+                            .font(.system(size: 8, weight: .bold, design: .default))
+                            .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
+                            .frame(width: geometry.size.width, alignment: .center)
+                            .background(Color.red)
+                            .opacity(isCurrentMonth ? 1 : 0.3)
+                    }
                 }
             }
         }
@@ -227,7 +250,7 @@ struct CalendarView: View {
     private struct InfoView: View {
         let store: StoreOf<CalendarReducer>
         
-        @State private var spacerHeight: CGFloat = 300  // 초기 높이
+        @State private var spacerHeight: CGFloat = 0  // 초기 높이
         @State private var dragOffset: CGFloat = 0
         @State private var isDragable = false
         
@@ -237,8 +260,9 @@ struct CalendarView: View {
             
             GeometryReader { proxy in
                 VStack {
+                    
                     Spacer()
-                        .frame(height: CGFloat(max(proxy.size.height - (spacerHeight - dragOffset), 0)))
+                        .frame(height: CGFloat(max(proxy.size.height - ( ((spacerHeight == 0) ? (proxy.size.height * 0.4) : spacerHeight) - dragOffset), 0)))
                     
                     ZStack(alignment: .top) {
                         

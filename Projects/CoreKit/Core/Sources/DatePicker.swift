@@ -25,6 +25,10 @@ public struct DatePickerReducer {
     public struct State: Equatable {
         public init() {}
         
+        public init(date: Date) {
+            self.selectedDate = date
+        }
+        
         
         public var selectedDate: Date = Date()
         var pickerType: pickerType = .wheel
