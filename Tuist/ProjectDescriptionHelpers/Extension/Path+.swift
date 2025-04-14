@@ -27,6 +27,10 @@ public extension ProjectDescription.Path {
         return .relativeToRoot("Projects/Data/MapData")
     }
     
+    static var widgetData: Self {
+        return .relativeToRoot("Projects/Data/WidgetData")
+    }
+    
     static var domain: Self {
         return .relativeToRoot("Projects/Domains/Domain")
     }

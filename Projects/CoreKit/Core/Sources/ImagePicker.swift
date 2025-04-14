@@ -19,10 +19,15 @@ public struct ImagePickerReducer {
     
     @ObservableState
     public struct State: Equatable {
+        public var imageLimits : Int = 0
         public var images: [Data] = []
         
         public init(images: [Data] = []) {
             self.images = images
+        }
+        
+        public init (imageLimits: Int) {
+            self.imageLimits = imageLimits
         }
     }
     
@@ -72,7 +77,7 @@ public struct ImagePickerView: UIViewControllerRepresentable {
     
     public func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
-        config.selectionLimit = 0      // 0이면 무제한 선택, 원하는 개수로 제한 가능
+        config.selectionLimit = store.imageLimits
         config.filter = .images         // 이미지만 선택
         
         let picker = PHPickerViewController(configuration: config)
@@ -134,17 +139,17 @@ public struct ImagePickerView: UIViewControllerRepresentable {
         
         private func saveImage(_ image: UIImage) -> String? {
             guard let data = image.pngData() else { return nil }
-                let filename = UUID().uuidString + ".png"
-                let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                let fileURL = documentsDirectory.appendingPathComponent(filename)
-                
-                do {
-                    try data.write(to: fileURL)
-                    return fileURL.path
-                } catch {
-                    print("Error saving image: \(error)")
-                    return nil
-                }
+            let filename = UUID().uuidString + ".png"
+            let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let fileURL = documentsDirectory.appendingPathComponent(filename)
+            
+            do {
+                try data.write(to: fileURL)
+                return fileURL.path
+            } catch {
+                print("Error saving image: \(error)")
+                return nil
+            }
         }
     }
 }

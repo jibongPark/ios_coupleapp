@@ -24,11 +24,31 @@ extension Project {
                 infoPlist: .extendingDefault(with: configuration.infoPlist),
                 sources: ["Sources/**"],
                 resources: [.glob(pattern: "Resources/**", excluding: [])],
-                entitlements: configuration.entitlements,
-                dependencies: dependencies,
+                entitlements: "\(configuration.projectName).entitlements",
+                dependencies: dependencies + [ .target(name: "\(configuration.projectName).WidgetExtension")],
                 settings: configuration.setting
             )
             targets.append(appTarget)
+            
+            let widgetExtensionTarget = Target.target(
+                name: "\(configuration.projectName).WidgetExtension",
+                destinations: configuration.destination,
+                product: .appExtension,
+                bundleId: "\(configuration.bundleIdentifier).\(configuration.projectName).WidgetExtension",
+                infoPlist: .extendingDefault(with: [
+                                "CFBundleDisplayName": "$(PRODUCT_NAME)",
+                                "NSExtension": [
+                                    "NSExtensionPointIdentifier": "com.apple.widgetkit-extension",
+                                ],
+                            ]),
+                sources: ["coupleapp.WidgetExtension/**"],
+                resources: [.glob(pattern: "Resources/**", excluding: [])],
+                entitlements: "\(configuration.projectName).entitlements",
+                dependencies: dependencies
+            )
+            
+            targets.append(widgetExtensionTarget)
+                
             
             let appScheme = Scheme.configureAppScheme(
                 schemeName: configuration.projectName

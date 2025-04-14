@@ -7,5 +7,6 @@ let project = Project.configure(
     dependencies: [
         .Features.Calendar.Feature,
         .Features.Map.Feature,
+        .Features.Widget.Feature
     ]
 )

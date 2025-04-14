@@ -9,11 +9,13 @@ import SwiftUI
 import ComposableArchitecture
 import MapFeature
 import CalendarFeature
+import WidgetFeature
 
 struct AppView: View {
     
     @Dependency(\.mapFeature) var mapFeature
     @Dependency(\.calendarFeature) var calendarFeature
+    @Dependency(\.widgetFeature) var widgetFeature
     
     let store: StoreOf<AppReducer>
     
@@ -28,6 +30,10 @@ struct AppView: View {
             AnyView(calendarFeature.makeView())
                 .tabItem {
                     Text("캘린더")
+                }
+            AnyView(widgetFeature.makeView())
+                .tabItem {
+                    Text("위젯")
                 }
         }
     }
