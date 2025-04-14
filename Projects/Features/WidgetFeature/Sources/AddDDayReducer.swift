@@ -13,6 +13,7 @@ import UIKit
 import SwiftUICore
 import Domain
 import WidgetData
+import WidgetKit
 
 @Reducer
 struct AddDDayReducer {
@@ -36,12 +37,21 @@ struct AddDDayReducer {
             self.title = vo.title
             self.startDate = vo.startDate
             self.imagePath = vo.imagePath
+            self.isShowDate = vo.isShowDate
+            self.isShowTitle = vo.isShowTitle
+            self.dateAlignment = vo.dateAlignment.toTextAlignment()
+            self.titleAlignment = vo.titleAlignment.toTextAlignment()
         }
         
         var id: Int
         var title: String
         var startDate: Date
         var imagePath: String
+        var isShowDate: Bool = true
+        var isShowTitle: Bool = true
+        
+        var dateAlignment: Alignment = .topLeading
+        var titleAlignment: Alignment = .topLeading
         
         var image: UIImage?
         
@@ -56,6 +66,9 @@ struct AddDDayReducer {
         
         case addPhotoButtonTapped
         case dateChangeButtonTapped
+        
+        case didTapDateAlignment(Alignment)
+        case didTapTitleAlignment(Alignment)
         
         case delegate(Delegate)
         
@@ -84,14 +97,28 @@ struct AddDDayReducer {
                 
             case .saveButtonTapped:
                 
-                if let image = state.image {
-                    state.imagePath = ImageLib.saveJPEGToGroup(image, imageName: String(state.id), groupName: "group.com.bongbong.coupleapp")
+                if state.image != nil && !state.imagePath.isEmpty {
+                    ImageLib.removeImageFromGroup(withFilename: state.imagePath, groupName: "group.com.bongbong.coupleapp")
                 }
                 
-                let widgetVO = WidgetVO(id: state.id, title: state.title, memo: "", startDate: state.startDate, imagePath: state.imagePath, alignment: .center)
+                if let image = state.image {
+                    state.imagePath = ImageLib.saveJPEGToGroup(image, imageName: (String(state.id) + String(UUID().hashValue)), groupName: "group.com.bongbong.coupleapp")
+                }
+                
+                let widgetVO = WidgetVO(id: state.id,
+                                        title: state.title,
+                                        memo: "",
+                                        startDate: state.startDate,
+                                        imagePath: state.imagePath,
+                                        isShowDate: state.isShowDate,
+                                        dateAlignment: state.dateAlignment,
+                                        isShowTitle: state.isShowTitle,
+                                        titleAlignment: state.titleAlignment)
+                
                 return .run { [widgetVO] send in
                     await send(.delegate(.addDDayData(widgetVO)))
                     await widgetRepository.updateWidget(widgetVO)
+                    WidgetCenter.shared.reloadTimelines(ofKind: "coupleapp_WidgetExtension")
                     await dismiss()
                 }
 
@@ -102,14 +129,22 @@ struct AddDDayReducer {
                 return .none
                 
             case .dateChangeButtonTapped:
-                state.destination = .datePicker(DatePickerReducer.State())
+                state.destination = .datePicker(DatePickerReducer.State(date: state.startDate))
+                return .none
+                
+            case .didTapDateAlignment(let alignment):
+                state.dateAlignment = alignment
+                return .none
+                
+            case .didTapTitleAlignment(let alignment):
+                state.titleAlignment = alignment
                 return .none
                 
             case .delegate:
                 return .none
                 
             case .destination(.presented(.photoPicker(.delegate(.didFinishPicking(let images))))):
-                let resizeImage = images.first!.resize(to: CGSize(width: 200, height: 400))
+                let resizeImage = images.first!.resize(toMaxByte: 900000)
                 
                 state.image = resizeImage
                 return .none

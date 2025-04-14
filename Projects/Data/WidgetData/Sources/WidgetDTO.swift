@@ -8,16 +8,20 @@
 
 import Foundation
 import Domain
+import SwiftUICore
 
 final class WidgetDTO {
     
-    public init(id: Int = UUID().hashValue, title: String = "", memo: String = "", startDate: Date = Date(), imagePath: String = "", alignment: WidgetAlign = .center) {
+    public init(id: Int = UUID().hashValue, title: String = "", memo: String = "", startDate: Date = Date(), imagePath: String = "", isShowDate: Bool = true, dateAlignment: Alignment, isShowTitle: Bool = true, titleAlignment: Alignment) {
         self.id = id
         self.title = title
         self.memo = memo
         self.startDate = startDate
         self.imagePath = imagePath
-        self.alignment = alignment
+        self.isShowDate = isShowDate
+        self.dateAlignment = dateAlignment
+        self.isShowTitle = isShowTitle
+        self.titleAlignment = titleAlignment
     }
     
     public let id: Int
@@ -25,7 +29,10 @@ final class WidgetDTO {
     public let memo: String
     public let startDate: Date
     public let imagePath: String
-    public let alignment: WidgetAlign
+    public let isShowDate: Bool
+    public let dateAlignment: Alignment
+    public let isShowTitle: Bool
+    public let titleAlignment: Alignment
     
 }
 

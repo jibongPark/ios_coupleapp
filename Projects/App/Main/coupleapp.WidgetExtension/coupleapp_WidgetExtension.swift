@@ -13,6 +13,7 @@ import Domain
 import WidgetData
 import AppIntents
 import Core
+import WidgetFeature
 
 struct WidgetEntry: TimelineEntry {
     let date: Date
@@ -48,13 +49,27 @@ struct WidgetProvider: AppIntentTimelineProvider {
         let vo = all.first(where: { $0.id == selected.id })
         
         let entry = WidgetEntry(date: .now, widgetVO: vo)
-        return Timeline(entries: [entry], policy: .atEnd)
+        
+        let currentDate = Date()
+                let calendar = Calendar.current
+        guard let todayMidnight = calendar.date(from: calendar.dateComponents([.year, .month, .day], from: currentDate)) else {
+            return Timeline(entries: [entry], policy: .atEnd)
+        }
+        
+        guard let nextMidnight = calendar.date(byAdding: .day, value: 1, to: todayMidnight) else {
+            return Timeline(entries: [entry], policy: .atEnd)
+        }
+        
+        
+        return Timeline(entries: [entry], policy: .after(nextMidnight))
     }
-    
 }
 
 
 struct coupleapp_WidgetExtensionEntryView : View {
+    
+    @Dependency(\.widgetFeature) var widgetFeature
+    
     var entry: WidgetProvider.Entry
     @Environment(\.widgetFamily) var widgetFamily
     
@@ -71,25 +86,25 @@ struct coupleapp_WidgetExtensionEntryView : View {
                 .containerBackground(.fill, for: .widget)
                 
             default:
-                ZStack {
+                
+                GeometryReader { geometry in
                     
-                    if let image = ImageLib.loadImageFromGroup(withFilename: vo.imagePath, groupName:"group.com.bongbong.coupleapp") {
+                    let _ = print(geometry.size)
+                    ZStack {
+                        AnyView(widgetFeature.widgetTextView(vo: vo))
+                    }
+                    
+
+                }
+                .containerBackground(for: .widget) {
+                    if let image = ImageLib.loadImageFromGroup(withFileName: vo.imagePath, groupName:"group.com.bongbong.coupleapp") {
                         Image(uiImage: image)
                             .resizable()
                             .scaledToFill()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .clipped()
-                    }
-                    
-                    VStack(alignment: .leading) {
-                        Text(vo.title)
-                            .font(.headline)
-                        Text(vo.startDate.dDayString)
-                            .font(.subheadline)
+                    } else {
                     }
                 }
-                .containerBackground(.fill, for: .widget)
-                
             }
             
         } else {
@@ -110,6 +125,7 @@ struct coupleapp_WidgetExtension: Widget {
         }
         .configurationDisplayName("디데이 위젯")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular])
+        .contentMarginsDisabled()
     }
 }
 

@@ -2,6 +2,7 @@ import Foundation
 import ComposableArchitecture
 
 import Domain
+import Core
 
 @Reducer
 struct WidgetReducer {
@@ -99,6 +100,14 @@ struct WidgetReducer {
                 )
                 return .none
                 
+            case .destination(.presented(.addDdayView(.delegate(.addDDayData(let widgetVO))))):
+                if let index = state.widgetData.firstIndex(where: { $0.id == widgetVO.id }) {
+                    state.widgetData[index] = widgetVO
+                } else {
+                    state.widgetData.append(widgetVO)
+                }
+                
+                return .none
 
             case .destination:
                 return .none

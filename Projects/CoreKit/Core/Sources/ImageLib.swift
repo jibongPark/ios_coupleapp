@@ -48,7 +48,7 @@ public struct ImageLib {
             return ""
         }
         
-        guard let data = image.jpegData(compressionQuality: 0.5) else { return "" }
+        guard let data = image.jpegData(compressionQuality: 1) else { return "" }
         
         let filename = imageName + ".jpeg"
         let fileURL = sharedURL.appendingPathComponent(filename)
@@ -62,7 +62,21 @@ public struct ImageLib {
         }
     }
     
-    public static func loadImageFromGroup(withFilename filename: String, groupName: String) -> UIImage? {
+    public static func removeImageFromGroup(withFilename filename: String, groupName: String) {
+        guard let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupName) else {
+            print("공유 컨테이너 URL을 찾을 수 없습니다.")
+            return
+        }
+        
+        let fileURL = sharedURL.appendingPathComponent(filename)
+        do {
+            try FileManager.default.removeItem(at: fileURL)
+        } catch {
+            print("removeFile Fail")
+        }
+    }
+    
+    public static func loadImageFromGroup(withFileName filename: String, groupName: String) -> UIImage? {
         
         guard let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupName) else {
             print("공유 컨테이너 URL을 찾을 수 없습니다.")

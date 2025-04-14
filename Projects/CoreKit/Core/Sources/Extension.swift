@@ -52,4 +52,23 @@ public extension UIImage {
             self.draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
+    
+    func resize(toMaxByte size: CGFloat) -> UIImage {
+        let imageSize = self.size.width * self.size.height
+        
+        let scaleFactor = sqrt(size / imageSize)
+        
+        let newSize = CGSize(width: self.size.width * scaleFactor, height: self.size.height * scaleFactor)
+        if(scaleFactor < 1) {
+            
+            let format = UIGraphicsImageRendererFormat.default()
+            format.scale = 1
+            let renderer = UIGraphicsImageRenderer(size: newSize, format: format)
+            return renderer.image { _ in
+                self.draw(in: CGRect(origin: .zero, size: newSize))
+            }
+        } else {
+            return self
+        }
+    }
 }

@@ -51,16 +51,50 @@ public extension WidgetAlign {
     }
 }
 
+public extension Alignment {
+    func toWidgetAlignment() -> WidgetAlign {
+        switch self {
+            
+        case .topLeading:
+            return .topLeft
+        case .top:
+            return .topCenter
+        case .topTrailing:
+            return .topRight
+            
+        case .leading:
+            return .centerLeft
+        case .center:
+            return .center
+        case .trailing:
+            return .centerRight
+            
+        case .bottomLeading:
+            return .bottomLeft
+        case .bottom:
+            return .bottomCenter
+        case .bottomTrailing:
+            return .bottomRight
+            
+        default:
+            return .center
+        }
+    }
+}
+
 
 public struct WidgetVO: Identifiable, Equatable, Codable {
     
-    public init(id: Int = UUID().hashValue, title: String = "", memo: String = "", startDate: Date = Date(), imagePath: String = "", alignment: WidgetAlign = .center) {
+    public init(id: Int = UUID().hashValue, title: String = "", memo: String = "", startDate: Date = Date(), imagePath: String = "", isShowDate: Bool = true, dateAlignment: Alignment = .center, isShowTitle: Bool = true, titleAlignment: Alignment = .center) {
         self.id = id
         self.title = title
         self.memo = memo
         self.startDate = startDate
         self.imagePath = imagePath
-        self.alignment = alignment
+        self.isShowDate = isShowDate
+        self.dateAlignment = dateAlignment.toWidgetAlignment()
+        self.isShowTitle = isShowTitle
+        self.titleAlignment = titleAlignment.toWidgetAlignment()
     }
     
     public let id: Int
@@ -68,7 +102,10 @@ public struct WidgetVO: Identifiable, Equatable, Codable {
     public let memo: String
     public let startDate: Date
     public let imagePath: String
-    public let alignment: WidgetAlign
+    public let isShowDate: Bool
+    public let dateAlignment: WidgetAlign
+    public let isShowTitle: Bool
+    public let titleAlignment: WidgetAlign
     
 }
 

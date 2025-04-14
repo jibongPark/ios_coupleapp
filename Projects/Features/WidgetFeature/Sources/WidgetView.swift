@@ -13,9 +13,10 @@ struct WidgetView: View {
                 
                 ScrollView {
                     LazyVGrid(columns: Array(repeating: GridItem(spacing: 0), count: 2), alignment: .center, spacing: 0) {
-                        ForEach(store.widgetData ?? []) { widgetItem in
+                        ForEach(store.widgetData) { widgetItem in
                             ZStack {
-                                WidgetItemView(widgetItem: widgetItem)
+                                WidgetPreview(vo: widgetItem, width: geometry.size.width / 2, height: geometry.size.width / 2)
+//                                WidgetItemView(widgetItem: widgetItem)
                                     .padding(10)
                                     .frame(width: geometry.size.width / 2, height: geometry.size.width / 2)
                                     .onTapGesture() {
@@ -84,10 +85,10 @@ struct WidgetItemView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                if let image = ImageLib.loadImageFromGroup(withFilename: widgetItem.imagePath, groupName: "group.com.bongbong.coupleapp") {
+                if let image = ImageLib.loadImageFromGroup(withFileName: widgetItem.imagePath, groupName: "group.com.bongbong.coupleapp") {
                     Image(uiImage: image)
                         .resizable()
-                        .scaledToFit()
+                        .scaledToFill()
                         .frame(width: geometry.size.width, height: geometry.size.height)
                 }
                 
@@ -102,7 +103,7 @@ struct WidgetItemView: View {
                         .foregroundStyle(.white)
                         .shadow(color: .black, radius: 2)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: widgetItem.alignment.toTextAlignment())
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: widgetItem.titleAlignment.toTextAlignment())
             }
             .background(.white)
             .cornerRadius(15)
@@ -125,6 +126,12 @@ public struct WidgetFeature: WidgetInterface {
                     WidgetReducer()
                 }
             )
+        )
+    }
+    
+    public func widgetTextView(vo: WidgetVO) -> any View {
+        AnyView(
+            WidgetTextView(vo: vo)
         )
     }
 }

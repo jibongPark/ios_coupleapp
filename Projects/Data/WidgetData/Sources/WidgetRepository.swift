@@ -1,6 +1,7 @@
 import Foundation
 import Domain
 import ComposableArchitecture
+import Core
 
 
 public struct WidgetRepositoryImpl: WidgetRepository {
@@ -73,6 +74,11 @@ public struct WidgetRepositoryImpl: WidgetRepository {
     }
     
     public func removeWidget(_ value: WidgetVO) async {
+        
+        if !value.imagePath.isEmpty {
+            ImageLib.removeImageFromGroup(withFilename: value.imagePath, groupName: "group.com.bongbong.coupleapp")
+        }
+        
         let defaults = UserDefaults(suiteName: groupName)
         
         var keys = fetchKeys()
