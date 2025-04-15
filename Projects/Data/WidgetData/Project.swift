@@ -7,6 +7,7 @@ let project = Project.configure(
     product: .framework,
     dependencies: [
         .Modules.domain,
+        .Core.core
     ],
     hasResources: false
 )
