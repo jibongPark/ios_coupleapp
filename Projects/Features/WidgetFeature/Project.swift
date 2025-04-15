@@ -8,5 +8,8 @@ let project = Project.configure(
         .Core.core,
         .Modules.domain,
         .Modules.widgetData
+    ],
+    interfaceDependencies: [
+        .Modules.domain
     ]
 )

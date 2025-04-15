@@ -6,6 +6,7 @@ extension Project {
         moduleType: ModuleType,
         product: Product,
         dependencies: [TargetDependency],
+        interfaceDependencies: [TargetDependency] = [],
         hasResources: Bool = false
     ) -> Project {
         
@@ -157,6 +158,7 @@ extension Project {
                     organizationName: configuration.organizationName,
                     targets: targets,
                     dependencies: dependencies,
+                    interfaceDependencies: interfaceDependencies,
                     schemes: schemes,
                     settings: configuration.setting
                 )
@@ -250,6 +252,7 @@ extension Project {
         organizationName: String,
         targets: [Target],
         dependencies: [TargetDependency],
+        interfaceDependencies: [TargetDependency],
         schemes: [Scheme],
         settings: Settings
     ) -> Project {
@@ -263,8 +266,8 @@ extension Project {
             bundleId: "\(configuration.bundleIdentifier).\(name.lowercased())Interface",
             deploymentTargets: configuration.deploymentTarget,
             infoPlist: .default,
-            sources: ["Interface/Sources/**"]
-//            dependencies: dependencies
+            sources: ["Interface/Sources/**"],
+            dependencies: interfaceDependencies
         )
         
         // Framework 타겟
