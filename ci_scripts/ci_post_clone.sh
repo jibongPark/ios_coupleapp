@@ -6,7 +6,7 @@ commit_message=$(git log -1 --pretty=%B)
 
 echo "❗️ commit : $commit_message"
 
-if [[ "$CI_WORKFLOW" = "Default" && "$commit_message" != *"[archive]"* ]]; then
+if [[ "$CI_WORKFLOW" = "Default" && "$commit_message" != "[archive]"* ]]; then
     echo "[archive] 키워드가 없으므로 빌드를 중단합니다."
     exit 1
 fi
