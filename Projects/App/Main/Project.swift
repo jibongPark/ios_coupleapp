@@ -8,5 +8,6 @@ let project = Project.configure(
         .Features.Calendar.Feature,
         .Features.Map.Feature,
         .Features.Widget.Feature
-    ]
+    ],
+    hasResources: true
 )

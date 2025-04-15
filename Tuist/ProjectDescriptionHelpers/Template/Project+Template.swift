@@ -26,16 +26,16 @@ extension Project {
                 sources: ["Sources/**"],
                 resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
                 entitlements: "\(configuration.projectName).entitlements",
-                dependencies: dependencies + [ .target(name: "\(configuration.projectName).WidgetExtension")],
+                dependencies: dependencies + [ .target(name: "\(configuration.projectName)_WidgetExtension")],
                 settings: configuration.setting
             )
             targets.append(appTarget)
             
             let widgetExtensionTarget = Target.target(
-                name: "\(configuration.projectName).WidgetExtension",
+                name: "\(configuration.projectName)_WidgetExtension",
                 destinations: configuration.destination,
                 product: .appExtension,
-                bundleId: "\(configuration.bundleIdentifier).\(configuration.projectName).WidgetExtension",
+                bundleId: "\(configuration.bundleIdentifier).WidgetExtension",
                 infoPlist: .extendingDefault(with: [
                                 "CFBundleDisplayName": "$(PRODUCT_NAME)",
                                 "NSExtension": [
