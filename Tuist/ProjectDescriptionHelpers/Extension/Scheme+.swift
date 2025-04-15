@@ -10,12 +10,14 @@ extension Scheme {
         let productionConfiguration: ConfigurationName = .configuration("Release")
         
         let buildAction = BuildAction.buildAction(targets: [TargetReference(stringLiteral: schemeName)])
+        let testAction = TestAction.targets([TestableTarget(stringLiteral: "\(schemeName)Tests")])
         
         return [
             Scheme.scheme(
                 name: schemeName + "-Debug",
                 shared: true,
                 buildAction: buildAction,
+                testAction: testAction,
                 runAction: .runAction(configuration: developConfiguration),
                 archiveAction: .archiveAction(configuration: developConfiguration),
                 profileAction: .profileAction(configuration: developConfiguration),
@@ -25,6 +27,7 @@ extension Scheme {
                 name: schemeName + "-Release",
                 shared: true,
                 buildAction: buildAction,
+                testAction: testAction,
                 runAction: .runAction(configuration: productionConfiguration),
                 archiveAction: .archiveAction(configuration: productionConfiguration),
                 profileAction: .profileAction(configuration: productionConfiguration),
@@ -39,11 +42,13 @@ extension Scheme {
         let developConfiguration: ConfigurationName = .configuration("Debug")
         
         let buildAction = BuildAction.buildAction(targets: [TargetReference(stringLiteral: schemeName)])
+        let testAction = TestAction.targets([TestableTarget(stringLiteral: "\(schemeName)Tests")])
         
         return Scheme.scheme(
             name: schemeName,
             shared: true,
             buildAction: buildAction,
+            testAction: testAction,
             runAction: .runAction(configuration: developConfiguration),
             archiveAction: .archiveAction(configuration: developConfiguration),
             profileAction: .profileAction(configuration: developConfiguration),
@@ -57,11 +62,13 @@ extension Scheme {
         let configuration: ConfigurationName = .configuration("Debug")
         
         let buildAction = BuildAction.buildAction(targets: [TargetReference(stringLiteral: schemeName)])
+        let testAction = TestAction.targets([TestableTarget(stringLiteral: "\(schemeName)Tests")])
         
         return Scheme.scheme(
                 name: schemeName,
                 shared: true,
                 buildAction: buildAction,
+                testAction: testAction,
                 runAction: .runAction(configuration: configuration),
                 archiveAction: .archiveAction(configuration: configuration),
                 profileAction: .profileAction(configuration: configuration),

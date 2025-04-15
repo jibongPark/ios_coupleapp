@@ -35,7 +35,7 @@ public struct DatePickerReducer {
         
     }
     
-    public enum Action: BindableAction {
+    public enum Action: BindableAction, Equatable {
         
         case typeChangeButtonTapped
         case okButtonTapped(Date)

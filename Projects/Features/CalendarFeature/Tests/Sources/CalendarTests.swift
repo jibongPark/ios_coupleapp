@@ -1,22 +1,34 @@
 import Foundation
-import ComposableArchitecture
 import Testing
-import CalendarFeature
-
-
-@testable import Calendar_demo_app
+import ComposableArchitecture
+@testable import CalendarFeature
 
 @MainActor
 struct CalendarTests {
     
     @Test
     func basics() async {
-        let testStore = TestStore(initialState: CalendarReducer.State(selectedMonth: Date())) {
+        let store = TestStore(initialState: CalendarReducer.State(selectedMonth: Date())) {
             CalendarReducer()
         }
         
-        await testStore.send(.selectedDateChange(Date())) { store in
-            
+        let testDate = Date()
+        
+        await store.send(.selectedDateChange(testDate)) { state in
+            state.selectedDate = testDate
         }
+        
+        await store.send(.selectedMonthChange(testDate)) { state in
+            state.selectedMonth = testDate
+        }
+        
+        await store.receive(\.searchAllData)
+ 
+        await store.receive(\.scheduleDataLoaded, timeout: 10)
+          
+        await store.receive(\.diaryDataLoaded, timeout: 10)
+        
+        await store.receive(\.todoDataLoaded, timeout: 10)
+        
     }
 }

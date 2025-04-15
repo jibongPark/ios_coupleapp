@@ -27,8 +27,15 @@ public class RealmKit {
     }
 }
 
+public class TestRealmKit: RealmKit {
+    override var realm: Realm {
+        return try! Realm(configuration: .init(inMemoryIdentifier: "TestRealmKit"))
+    }
+}
+
 private enum RealmKitKey: DependencyKey {
     static var liveValue: RealmKit = RealmKit()
+    static var testValue: RealmKit = TestRealmKit()
 }
 
 public extension DependencyValues {

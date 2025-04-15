@@ -142,6 +142,7 @@ public struct CalendarRepositoryImpl: CalendarRepository {
 
 private enum CalendarRepoKey: DependencyKey {
     static var liveValue: CalendarRepository = CalendarRepositoryImpl()
+    static var testValue: CalendarRepository = CalendarRepositoryImpl()
 }
 
 public extension DependencyValues {
