@@ -4,6 +4,6 @@ let workspace = Workspace(
     name: "CoupleApp",
     projects: [
         "Projects/**",
-        "DemoApps/**"
+//        "DemoApps/**"
     ]
 )

@@ -23,7 +23,7 @@ extension Project {
                 deploymentTargets: configuration.deploymentTarget,
                 infoPlist: .extendingDefault(with: configuration.infoPlist),
                 sources: ["Sources/**"],
-                resources: [.glob(pattern: "Resources/**", excluding: [])],
+                resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
                 entitlements: "\(configuration.projectName).entitlements",
                 dependencies: dependencies + [ .target(name: "\(configuration.projectName).WidgetExtension")],
                 settings: configuration.setting
@@ -42,7 +42,7 @@ extension Project {
                                 ],
                             ]),
                 sources: ["coupleapp.WidgetExtension/**"],
-                resources: [.glob(pattern: "Resources/**", excluding: [])],
+                resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
                 entitlements: "\(configuration.projectName).entitlements",
                 dependencies: dependencies
             )
@@ -74,7 +74,7 @@ extension Project {
                 deploymentTargets: configuration.deploymentTarget,
                 infoPlist: .extendingDefault(with: configuration.demoInfoPlist(name: name)),
                 sources: ["Sources/**"],
-                resources: [.glob(pattern: "Resources/**", excluding: [])],
+                resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
                 entitlements: configuration.entitlements,
                 dependencies: dependencies,
                 settings: configuration.setting
@@ -134,7 +134,7 @@ extension Project {
                     deploymentTargets: configuration.deploymentTarget,
                     infoPlist: .extendingDefault(with: configuration.demoInfoPlist(name: name)),
                     sources: ["Sources/**"],
-                    resources: [.glob(pattern: "Resources/**", excluding: [])],
+                    resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
                     entitlements: configuration.entitlements,
                     dependencies: dependencies,
                     settings: configuration.setting
@@ -294,7 +294,7 @@ extension Project {
             infoPlist: .extendingDefault(with: configuration.demoInfoPlist(name: name)),
             sources: ["Demo/Sources/**",
                      "Sources/**"],
-            resources: [.glob(pattern: "Resources/**", excluding: [])],
+//            resources: [.glob(pattern: "Resources/**", excluding: [])],
             entitlements: configuration.entitlements,
             dependencies: [
                 .target(name: frameworkTargetName)
