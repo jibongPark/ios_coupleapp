@@ -16,7 +16,7 @@ public struct AppConfiguration {
     let workspaceName = "coupleapp"
     let projectName: String = "coupleapp"
     let organizationName = "JIBONG PARK"
-    let shortVersion: String = "1.0.0"
+    let shortVersion: String = "1.0.1"
     let bundleIdentifier: String = "com.bongbong.coupleapp-ios"
     let displayName: String = "Memory Box"
     let destination: Set<Destination> = [.iPhone, .iPad]
