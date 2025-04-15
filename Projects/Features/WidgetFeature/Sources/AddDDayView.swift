@@ -313,7 +313,11 @@ public struct WidgetTextView: View {
     let isShowTitle: Bool
     let titleAlignment: Alignment
     
+    
     public var body: some View {
+        
+        let padding: CGFloat = 10
+        
         if titleAlignment == dateAlignment {
             VStack {
                 if isShowDate {
@@ -329,7 +333,7 @@ public struct WidgetTextView: View {
                         .frame(maxWidth: .infinity, alignment: titleAlignment)
                 }
             }
-            .padding(5)
+            .padding(padding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: titleAlignment)
         } else {
             
@@ -338,13 +342,13 @@ public struct WidgetTextView: View {
                     .font(.title)
                     .foregroundColor(.white)
                     .shadow(color: .black, radius: 2)
-                    .padding(5)
+                    .padding(padding)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: dateAlignment)
             }
             
             if isShowTitle {
                 WidgetTitleView(title: title, subTitle: startDate.formattedDateString)
-                    .padding(5)
+                    .padding(padding)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: titleAlignment)
             }
         }
