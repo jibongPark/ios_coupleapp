@@ -1,5 +1,6 @@
 
 import ProjectDescription
+import Foundation
 
 extension Project {
     public static func configure(
@@ -106,6 +107,7 @@ extension Project {
                     bundleId: "\(configuration.bundleIdentifier).feature.\(name.lowercased())",
                     deploymentTargets: configuration.deploymentTarget,
                     sources: ["Sources/**"],
+                    resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
                     dependencies: dependencies
                 )
                 targets.append(featureTarget)
@@ -160,7 +162,8 @@ extension Project {
                     dependencies: dependencies,
                     interfaceDependencies: interfaceDependencies,
                     schemes: schemes,
-                    settings: configuration.setting
+                    settings: configuration.setting,
+                    hasResources: hasResources
                 )
             }
             
@@ -241,6 +244,46 @@ extension Project {
                 targets: targets,
                 schemes: schemes
             )
+            
+        case let .data(name):
+            let dataName = name == "Data" ? "Data" : "\(name)Data"
+            let moduleTarget = Target.target(
+                name: dataName,
+                destinations: configuration.destination,
+                product: product,
+                bundleId: "\(configuration.bundleIdentifier).\(dataName.lowercased())",
+                deploymentTargets: configuration.deploymentTarget,
+                sources: ["Sources/**"],
+                resources: hasResources ? ["Resources/**"] : [],
+                dependencies: name == "Common" ? dependencies : dependencies + [.Data.Common.Data]
+            )
+            targets.append(moduleTarget)
+            
+            let testTargetName = "\(dataName)Tests"
+            let testTarget = Target.target(
+                name: testTargetName,
+                destinations: configuration.destination,
+                product: .unitTests,
+                bundleId: "\(configuration.bundleIdentifier).\(dataName.lowercased()).test",
+                deploymentTargets: configuration.deploymentTarget,
+                sources: ["Tests/Sources/**"],
+                dependencies: [.target(name: dataName)]
+            )
+            targets.append(testTarget)
+            
+            let moduleScheme = Scheme.configureScheme(
+                schemeName: dataName
+            )
+            
+            schemes.append(moduleScheme)
+            
+            return Project(
+                name: dataName,
+                organizationName: configuration.organizationName,
+                settings: configuration.commonSettings,
+                targets: targets,
+                schemes: schemes
+            )
         }
     }
     
@@ -254,7 +297,8 @@ extension Project {
         dependencies: [TargetDependency],
         interfaceDependencies: [TargetDependency],
         schemes: [Scheme],
-        settings: Settings
+        settings: Settings,
+        hasResources: Bool = false
     ) -> Project {
         
         // Interface 타겟
@@ -280,6 +324,7 @@ extension Project {
             deploymentTargets: configuration.deploymentTarget,
             infoPlist: .default,
             sources: ["Sources/**"],
+            resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
             dependencies: dependencies + [ .target(name: interfaceTargetName) ]
 //            [
 //                .target(name: interfaceTargetName),
@@ -297,7 +342,7 @@ extension Project {
             infoPlist: .extendingDefault(with: configuration.demoInfoPlist(name: name)),
             sources: ["Demo/Sources/**",
                      "Sources/**"],
-//            resources: [.glob(pattern: "Resources/**", excluding: [])],
+            resources: hasResources ? [.glob(pattern: "Resources/**", excluding: [])] : [],
             entitlements: configuration.entitlements,
             dependencies: [
                 .target(name: frameworkTargetName)

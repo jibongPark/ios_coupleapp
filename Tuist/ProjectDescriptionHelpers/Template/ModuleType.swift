@@ -12,5 +12,6 @@ public enum ModuleType {
     case demoapp(name: String)
     case feature(name: String, type: FeatureType)
     case module(name: String)
+    case data(name: String)
     case domain(name: String)
 }

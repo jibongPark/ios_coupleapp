@@ -4,7 +4,8 @@ module:
 	@echo "✨ 모듈 선택:"
 	@echo "[1]  Micro Feature 모듈 생성"
 	@echo "[2]  Domain 모듈 생성"
-	@read -p "📝 옵션 입력 (1, 2): " path_option; \
+	@echo "[3]  Data 모듈 생성"
+	@read -p "📝 옵션 입력 (1, 2, 3): " path_option; \
 	case $$path_option in \
 	1) \
 		destination="Projects/Features"; \
@@ -12,6 +13,9 @@ module:
 	2) \
 		destination="Projects/Domains"; \
 		folderName="domain";; \
+	3) \
+		destination="Projects/Data"; \
+		folderName="data";; \
 	*) \
 		echo "❌ 잘못된 옵션 입력입니다. 1, 2 중에서 선택하세요."; \
 		exit 1;; \
@@ -31,6 +35,8 @@ module:
 		sh ./Script/addNewDomain.sh "$$name"; \
 	elif [ "$$folderName" = "feature" ]; then \
 		sh ./Script/addNewFeature.sh "$$name"; \
+	elif [ "$$folderName" = "data" ]; then \
+		sh ./Script/addNewData.sh "$$name"; \
 	else \
 		echo "🚨 Error: Unknown folderName '$$folderName'"; \
 		exit 1; \

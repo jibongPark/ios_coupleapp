@@ -3,7 +3,7 @@
 NAME=$1
 
 # Dependency, RootFeature 파일 경로
-DEPENDENCY_FILE="./Tuist/ProjectDescriptionHelpers/Extension/Dependency+Domain.swift"
+DEPENDENCY_FILE="./Tuist/ProjectDescriptionHelpers/Extension/Dependency+Data.swift"
 
 # 이름 전달 확인
 if [ -z "$NAME" ]; then
@@ -17,25 +17,26 @@ if [ ! -f "$DEPENDENCY_FILE" ]; then
     exit 1
 fi
 
+
 # Dependency에 추가할 Struct
 NEW_DEPENDENCY_STRUCT="        public struct $NAME {}"
 
 # Dependency에 추가할 Extension
 NEW_DEPENDENCY_EXTENSION=$(cat <<EOF
 
-public extension TargetDependency.Domains.$NAME {
+public extension TargetDependency.Data.$NAME {
     static let name = "$NAME"
     
-    static let Domain = TargetDependency.Domains.project(name: "\(name)Domain")
+    static let Data = TargetDependency.Data.project(name: "\(name)Data")
 }
 EOF
 )
 
 # Root에 추가할 Dependency
-NEW_ROOT_DEPENDENCY="        .Domains.$NAME.Domain,"
+NEW_ROOT_DEPENDENCY="        .Data.$NAME.Data,"
 
 # Feature Struct 추가
-sed -i '' "/struct Domains {/a\\
+sed -i '' "/struct Data {/a\\
 $NEW_DEPENDENCY_STRUCT
 " "$DEPENDENCY_FILE"
 
