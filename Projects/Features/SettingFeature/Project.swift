@@ -2,10 +2,9 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.configure(
-    moduleType: .domain(name: "Domain"),
+    moduleType: .feature(name: "Setting", type: .micro),
     product: .framework,
     dependencies: [
-        .Domains.Auth.Domain,
-        .external(name: "ComposableArchitecture")
+        .Core.core
     ]
 )

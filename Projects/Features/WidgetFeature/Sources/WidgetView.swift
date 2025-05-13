@@ -117,15 +117,18 @@ struct WidgetItemView: View {
 
 
 public struct WidgetFeature: WidgetInterface {
-    public init() {}
+    
+    private let store: StoreOf<WidgetReducer>
+    
+    public init() {
+        store = .init(initialState: WidgetReducer.State()) {
+            WidgetReducer()
+        }
+    }
     
     public func makeView() -> any View {
         AnyView(
-            WidgetView(
-                store: .init(initialState: WidgetReducer.State()) {
-                    WidgetReducer()
-                }
-            )
+            WidgetView(store: self.store)
         )
     }
     

@@ -2,10 +2,9 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.configure(
-    moduleType: .domain(name: "Domain"),
+    moduleType: .data(name: "Common"),
     product: .framework,
     dependencies: [
-        .Domains.Auth.Domain,
-        .external(name: "ComposableArchitecture")
+        .external(name: "Moya")
     ]
 )

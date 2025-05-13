@@ -191,9 +191,10 @@ struct CalendarReducer {
                 return .none
                 
             case .didTapGotoToday:
-                state.selectedDate = Date()
-                state.selectedMonth = Date()
-                return .none
+                return .run { send in
+                    await send(.selectedMonthChange(Date()))
+                    await send(.selectedDateChange(Date()))
+                }
                 
             case let .destination(.presented(.diaryView(.delegate(.addDiary(diary))))):
                 state.diaryData[diary.date.calendarKeyString] = diary
@@ -215,9 +216,10 @@ struct CalendarReducer {
                 return .none
                 
             case .destination(.presented(.datePickerView(.delegate(.didFinishPicking(let date))))):
-                state.selectedDate = date
-                state.selectedMonth = date
-                return .none
+                return .run { send in
+                    await send(.selectedMonthChange(date))
+                    await send(.selectedDateChange(date))
+                }
                 
             case .destination:
                 return .none

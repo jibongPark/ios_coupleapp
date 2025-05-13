@@ -11,37 +11,34 @@ private struct MapView: View {
     let viewScale: CGFloat = 3
 
     var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
-            
-            GeometryReader { geometry in
-                if viewStore.mapData != nil {
-                    let polygons = viewStore.mapData!.polygons
-                    let boundingRect = viewStore.mapData!.boundingRect
-                    let tripData = viewStore.tripData
-                    
-                    ZoomableScrollView {
-                        ZStack {
-                            ForEach(0..<polygons.count, id: \.self) { index in
-                                
-                                let polygon = polygons[index]
-                                
-                                PolygonItemView(polygon: polygon,
-                                                boundingRect: boundingRect,
-                                                tripVO: tripData[polygon.sigunguCode],
-                                                viewScale: viewScale,
-                                                geometrySize: geometry.size)
-                                .onTapGesture {
-                                    store.send(.mapTapped(polygon))
-                                }
+        GeometryReader { geometry in
+            if store.mapData != nil {
+                let polygons = store.mapData!.polygons
+                let boundingRect = store.mapData!.boundingRect
+                let tripData = store.tripData
+                
+                ZoomableScrollView {
+                    ZStack {
+                        ForEach(0..<polygons.count, id: \.self) { index in
+                            
+                            let polygon = polygons[index]
+                            
+                            PolygonItemView(polygon: polygon,
+                                            boundingRect: boundingRect,
+                                            tripVO: tripData[polygon.sigunguCode],
+                                            viewScale: viewScale,
+                                            geometrySize: geometry.size)
+                            .onTapGesture {
+                                store.send(.mapTapped(polygon))
                             }
                         }
-                        .padding(10)
                     }
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                } else {
-                    Text("Loading GeoJSON...")
-                        .onAppear { viewStore.send(.onApear) }
+                    .padding(10)
                 }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+            } else {
+                Text("Loading GeoJSON...")
+                    .onAppear { store.send(.onApear) }
             }
         }
         .fullScreenCover(
@@ -164,14 +161,19 @@ struct MultiPolygonShape: Shape {
 }
 
 public struct MapFeature: MapFeatureInterface {
-    public init() {}
+    
+    private let store: Store<MapReducer.State, MapReducer.Action>
+    
+    public init() {
+        self.store = .init(initialState: MapReducer.State()) {
+            MapReducer()
+        }
+    }
     
     public func makeView() -> any View {
         AnyView(
             MapView(
-                store: .init(initialState: MapReducer.State()) {
-                    MapReducer()
-                }
+                store: self.store
             )
         )
     }

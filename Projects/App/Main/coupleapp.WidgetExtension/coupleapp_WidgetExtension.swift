@@ -89,7 +89,6 @@ struct coupleapp_WidgetExtensionEntryView : View {
                 
                 GeometryReader { geometry in
                     
-                    let _ = print(geometry.size)
                     ZStack {
                         AnyView(widgetFeature.widgetTextView(vo: vo))
                     }

@@ -579,15 +579,18 @@ extension Date {
 }
 
 public struct CalendarFeature: CalendarInterface {
-    public init() {}
+    
+    private let store: StoreOf<CalendarReducer>
+    
+    public init() {
+        self.store = .init(initialState: CalendarReducer.State(selectedMonth: Date())) {
+            CalendarReducer()
+        }
+    }
     
     public func makeView() -> any View {
         AnyView(
-            CalendarView(
-                store: .init(initialState: CalendarReducer.State(selectedMonth: Date())) {
-                    CalendarReducer()
-                }
-            )
+            CalendarView(store: self.store)
         )
     }
 }

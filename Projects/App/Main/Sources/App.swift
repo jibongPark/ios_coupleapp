@@ -8,17 +8,34 @@
 
 import SwiftUI
 import ComposableArchitecture
+import KakaoSDKCommon
+import KakaoSDKAuth
 
 @main
 struct MyApp: App {
     
-    static let store = Store(initialState: AppReducer.State()) {
-        AppReducer()
+    private let store: StoreOf<AppReducer>
+    
+    init() {
+        store = .init(initialState: AppReducer.State()) {
+            AppReducer()
+        }
+        
+        if let kakaoKey = Bundle.main.object(forInfoDictionaryKey:"KAKAO_APP_KEY") as? String {
+            KakaoSDK.initSDK(appKey: kakaoKey)
+        } else {
+            print("카카오 키 없음")
+        }
     }
     
     var body: some Scene {
         WindowGroup {
-            AppView(store: MyApp.store)
+            AppView(store: store)
+                .onOpenURL(perform: { url in
+                    if (AuthApi.isKakaoTalkLoginUrl(url)) {
+                        AuthController.handleOpenUrl(url: url)
+                    }
+                })
         }
     }
 }

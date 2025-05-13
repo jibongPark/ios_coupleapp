@@ -137,7 +137,9 @@ public struct AddTripReducer {
                 return .none
                 
             case .scaleImageButtonTapped:
-                state.scalePhoto = ScalePhotoReducer.State(scale: state.scale, position: state.center, polygonShape: state.polygon, imagePath: state.images[0])
+                if !state.images.isEmpty {
+                    state.scalePhoto = ScalePhotoReducer.State(scale: state.scale, position: state.center, polygonShape: state.polygon, imagePath: state.images[0])
+                }
                 return .none
                 
             case .scaleImage(.presented(.delegate(.scaleDone(let scale, let position)))):
