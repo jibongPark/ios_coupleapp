@@ -84,7 +84,7 @@ public struct LoginReducer {
                 return .none
                 
             case .loadUserData:
-                state.name = authRepository.getUserName()
+                state.name = authRepository.userName
                 return .none
                 
             }

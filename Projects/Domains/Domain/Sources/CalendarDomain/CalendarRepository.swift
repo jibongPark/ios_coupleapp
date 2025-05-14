@@ -11,6 +11,8 @@ import Foundation
 
 public protocol CalendarRepository {
     
+    func fetch() -> Effect<String>
+    
     func fetchTodo(ofMonth: Date) -> Effect<[String: [TodoVO]]>
     func fetchDiary(ofMonth: Date) -> Effect<[String: DiaryVO]>
     func fetchSchedule(ofMonth: Date) -> Effect<[String: [ScheduleVO]]>

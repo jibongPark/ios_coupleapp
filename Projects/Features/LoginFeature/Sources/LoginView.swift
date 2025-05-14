@@ -45,7 +45,6 @@ public struct LoginView: View {
                 }, onCompletion: { result in
                     switch result {
                     case .success(let authResults):
-                        print("Apple Login Successful")
                         switch authResults.credential {
                         case let appleIDCredential as ASAuthorizationAppleIDCredential:
                             let name = appleIDCredential.fullName?.givenName ?? ""

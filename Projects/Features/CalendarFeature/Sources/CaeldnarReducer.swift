@@ -79,6 +79,10 @@ struct CalendarReducer {
                 let month = state.selectedMonth
                 
                 return .merge(
+                    calendarRepository.fetch()
+                        .map { @Sendable vo in
+                                .didTapGotoToday
+                        },
                     calendarRepository.fetchDiary(ofMonth: month)
                         .map { @Sendable diaryVOs in
                             Action.diaryDataLoaded(diaryVOs)

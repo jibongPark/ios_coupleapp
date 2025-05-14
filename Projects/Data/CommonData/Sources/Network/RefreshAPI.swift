@@ -1,8 +1,8 @@
 //
-//  AuthService.swift
-//  AuthData
+//  RefreshAPI.swift
+//  CommonData
 //
-//  Created by 박지봉 on 5/8/25.
+//  Created by 박지봉 on 5/14/25.
 //  Copyright © 2025 JIBONG PARK. All rights reserved.
 //
 
@@ -10,12 +10,11 @@ import Moya
 import Foundation
 import AuthDomain
 
-enum AuthService {
-    case login(type: LoginType, jwt: String, name: String)
+enum RefreshAPI {
     case refresh(token: String)
 }
 
-extension AuthService: TargetType {
+extension RefreshAPI: TargetType {
     var headers: [String : String]? {
         ["Content-Type": "application/json"]
     }
@@ -33,7 +32,6 @@ extension AuthService: TargetType {
     
     var path: String {
         switch self {
-        case .login: return "/login"
         case .refresh: return "/refresh"
         }
     }
@@ -44,9 +42,6 @@ extension AuthService: TargetType {
     
     var task: Task {
         switch self {
-        case let .login(type, jwt, name):
-            return .requestParameters(parameters: ["loginType": type.rawValue, "jwt": jwt, "name": name], encoding: JSONEncoding.default)
-            
         case let .refresh(jwt):
             return .requestParameters(parameters: ["refreshToken": jwt], encoding: JSONEncoding.default)
         }

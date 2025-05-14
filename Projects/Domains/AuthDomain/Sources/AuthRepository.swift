@@ -12,7 +12,7 @@ import Foundation
 import Core
 
 public protocol AuthRepository: Sendable {
-    func getUserName() -> String?
+    var userName: String? { get }
     
     func loginUser(_ user: LoginVO) -> Effect<DataResult<String>>
     func logoutUser()

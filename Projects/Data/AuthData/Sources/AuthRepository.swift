@@ -14,28 +14,40 @@ import Security
 
 import ComposableArchitecture
 @preconcurrency import Moya
-import Core
+@preconcurrency import Core
 
 
-public struct AuthRepositoryImpl: AuthRepository {
+public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
+    
+    public init() {
+        
+    }
     
     @Dependency(\.authManager) var authManager
     
-    private let provider = MoyaProvider<AuthService>()
+    private lazy var provider = MoyaProvider<AuthService>()
     
-    private let tag = "com.bongbong.auth.login".data(using: .utf8)!
-    private let userService = "com.bongbong.userinfo"
-    private let nameAccount = "userName"
-    private let accessAccount = "accessToken"
-    private let refreshAccount = "refreshToken"
+    public var userName: String? {
+        get {
+            authManager.userName
+        }
+    }
     
-    public func getUserName() -> String? {
-        authManager.userName
+    public var accessToken: String? {
+        get {
+            authManager.accessToken
+        }
+    }
+    
+    public var refreshToken: String? {
+        get {
+            authManager.refreshToken
+        }
     }
     
     public func loginUser(_ user: LoginVO) -> Effect<DataResult<String>> {
         
-        return Effect.run { send async in
+        return Effect.run { [self] send async in
             
             let result: Result<Response, MoyaError> = await withCheckedContinuation { continuation in
                 provider.request(.login(type: user.type, jwt: user.token, name: user.name)) { moyaResult in
@@ -59,7 +71,6 @@ public struct AuthRepositoryImpl: AuthRepository {
                         let accessToken = response.data!.accessToken
                         let refreshToken = response.data!.refreshToken
                         
-                        
                         authManager.updateUserName(userName)
                         authManager.updateToken(access: accessToken, refresh: refreshToken)
                         
@@ -80,6 +91,45 @@ public struct AuthRepositoryImpl: AuthRepository {
     
     public func updateUser(_ user: AuthDomain.UserVO) {
         
+    }
+    
+    public func refreshToken(refreshToken: String) async -> AuthTokens? {
+        let result: Result<Response, MoyaError> = await withCheckedContinuation { continuation in
+            provider.request(.refresh(token: refreshToken)) { moyaResult in
+                switch moyaResult {
+                case .success(let response):
+                    continuation.resume(returning: .success(response))
+                case .failure(let moyaError):
+                    continuation.resume(returning: .failure(moyaError))
+                }
+            }
+        }
+        
+        do {
+            switch result {
+            case .success(let resp):
+                let response: APIResponse<AuthTokens> = try resp.mapAPIResponse(AuthTokens.self)
+                
+                if response.success {
+                    
+                    let accessToken = response.data!.accessToken
+                    let refreshToken = response.data!.newRefreshToken
+                    
+                    authManager.updateToken(access: accessToken, refresh: refreshToken)
+                    
+                    return AuthTokens(accessToken: accessToken, refreshToken: refreshToken)
+                    
+                } else {
+                    
+                }
+            case .failure(let error):
+                
+                print(error)
+            }
+        } catch {
+            print(error)
+        }
+        return nil
     }
     
     public func logoutUser() {

@@ -5,7 +5,6 @@ let project = Project.configure(
     moduleType: .domain(name: "Domain"),
     product: .framework,
     dependencies: [
-        .Domains.Auth.Domain,
         .external(name: "ComposableArchitecture")
     ]
 )

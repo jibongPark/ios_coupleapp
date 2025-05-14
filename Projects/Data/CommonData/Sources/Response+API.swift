@@ -19,13 +19,6 @@ public extension Response {
         return try decoder.decode(APIResponse<Payload>.self, from: self.data)
     }
     
-    
-    func mapAPIResponse(
-        using decoder: JSONDecoder = JSONDecoder()
-    ) throws -> Response2 {
-        return try decoder.decode(Response2.self, from: self.data)
-    }
-    
     /// 2) 내부 data와 message를 튜플로 꺼내는 편의 메서드
     ///    - data가 없으면 `payload`는 nil
     ///    - message가 없으면 `message`는 nil

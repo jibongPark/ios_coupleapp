@@ -7,10 +7,11 @@
 //
 
 import Dependencies
+import Core
 
 public final class AuthManager {
     
-    @Dependency(\.keyChainHelper) var keyChainHelper
+    var keyChainHelper = KeychainHelper.standard
     
     private let tag = "com.bongbong.auth.login".data(using: .utf8)!
     private let userService = "com.bongbong.userinfo"

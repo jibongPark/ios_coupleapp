@@ -54,23 +54,12 @@ public final class KeychainHelper {
         return string
     }
 
-    func delete(service: String, account: String) {
+    public func delete(service: String, account: String) {
         let query: [String: Any] = [
             kSecClass as String       : kSecClassGenericPassword,
             kSecAttrService as String : service,
             kSecAttrAccount as String : account
         ]
         SecItemDelete(query as CFDictionary)
-    }
-}
-
-private enum KeychainHelperKey: DependencyKey {
-    static var liveValue = KeychainHelper.standard
-}
-
-public extension DependencyValues {
-    var keyChainHelper: KeychainHelper {
-        get { self[KeychainHelperKey.self] }
-        set { self[KeychainHelperKey.self] = newValue }
     }
 }
