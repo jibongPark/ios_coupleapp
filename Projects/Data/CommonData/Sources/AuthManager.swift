@@ -30,6 +30,7 @@ public final class AuthManager {
             let name = try keyChainHelper.read(service: userService, account: nameAccount)
             if let name = name {
                 userName = name
+                ConfigManager.shared.set("didLogin", true)
             }
             
             let accessToken = try keyChainHelper.read(service: userService, account: accessAccount)

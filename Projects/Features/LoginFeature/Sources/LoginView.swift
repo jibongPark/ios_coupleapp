@@ -72,34 +72,30 @@ public struct LoginView: View {
 }
 
 
-//public struct LoginFeature: LoginInterface {
-//    
-//    private var store: StoreOf<LoginReducer>
-//    
-//    public init() {
-//        self.store = .init(initialState: LoginReducer.State()) {
-//            LoginReducer()
-//        }
-//    }
-//    
-//    public func makeView() -> any View {
-//        AnyView(
-//            LoginView(store: self.store)
-//        )
-//    }
-//    
-//    public mutating func setPresented(_ presendted: Binding<Bool>) {
-//        store.isPresented = presendted
-//    }
-//}
-//
-//enum LoginFeatureKey: DependencyKey {
-//    static var liveValue: LoginInterface = LoginFeature()
-//}
-//
-//public extension DependencyValues {
-//    var loginFeature: LoginInterface {
-//        get { self[LoginFeatureKey.self] }
-//        set { self[LoginFeatureKey.self] = newValue }
-//    }
-//}
+public struct LoginFeature: LoginInterface {
+    
+    private var store: StoreOf<LoginReducer>
+    
+    public init() {
+        self.store = .init(initialState: LoginReducer.State()) {
+            LoginReducer()
+        }
+    }
+    
+    public func makeView() -> any View {
+        AnyView(
+            LoginView(store: self.store)
+        )
+    }
+}
+
+enum LoginFeatureKey: DependencyKey {
+    static var liveValue: LoginInterface = LoginFeature()
+}
+
+public extension DependencyValues {
+    var loginFeature: LoginInterface {
+        get { self[LoginFeatureKey.self] }
+        set { self[LoginFeatureKey.self] = newValue }
+    }
+}

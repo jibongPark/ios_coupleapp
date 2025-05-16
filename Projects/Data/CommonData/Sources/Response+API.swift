@@ -16,6 +16,25 @@ public extension Response {
         _ payloadType: Payload.Type,
         using decoder: JSONDecoder = JSONDecoder()
     ) throws -> APIResponse<Payload> {
+        
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [
+          .withInternetDateTime,
+          .withFractionalSeconds
+        ]
+        
+        decoder.dateDecodingStrategy = .custom { decoder in
+          let container = try decoder.singleValueContainer()
+          let str = try container.decode(String.self)
+          guard let date = isoFormatter.date(from: str) else {
+            throw DecodingError.dataCorruptedError(
+              in: container,
+              debugDescription: "Invalid date: \(str)"
+            )
+          }
+          return date
+        }
+        
         return try decoder.decode(APIResponse<Payload>.self, from: self.data)
     }
     

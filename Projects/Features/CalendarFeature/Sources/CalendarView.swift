@@ -236,7 +236,7 @@ struct CalendarView: View {
                         Text("+\(extraCount)")
                             .lineLimit(1)
                             .foregroundColor(.white)
-                            .font(.system(size: 8, weight: .bold, design: .default))
+                            .font(.system(size: 6, weight: .bold, design: .default))
                             .padding(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
                             .frame(width: geometry.size.width, alignment: .center)
                             .background(Color.red)

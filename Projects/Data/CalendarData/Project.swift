@@ -7,7 +7,9 @@ let project = Project.configure(
     dependencies: [
         .Modules.domain,
         .Core.realmKit,
+        .Data.Common.Data,
         .external(name: "RealmSwift"),
         .external(name: "Realm"),
+        .external(name: "Moya")
     ]
 )

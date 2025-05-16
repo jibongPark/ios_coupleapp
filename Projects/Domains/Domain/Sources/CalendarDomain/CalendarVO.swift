@@ -16,8 +16,21 @@ enum CalendarDataType: Equatable {
     case schedule
 }
 
+public struct CalendarDatas {
+    public var todos: [String: [TodoVO]]
+    public var diaries: [String: DiaryVO]
+    public var schedules: [String: [ScheduleVO]]
+    
+    public init(todos: [String : [TodoVO]], diaries: [String : DiaryVO], schedules: [String : [ScheduleVO]]) {
+        self.todos = todos
+        self.diaries = diaries
+        self.schedules = schedules
+    }
+    
+}
+
 public protocol CalendarVO {
-    var id: Int { get }
+    var id: String { get }
     var title: String { get }
     
     var startDate: Date { get }
@@ -27,7 +40,7 @@ public protocol CalendarVO {
 
 public struct TodoVO: Identifiable, Equatable, Hashable, CalendarVO {
     
-    public init(id: Int = UUID().hashValue, title: String = "", memo: String = "", endDate: Date = Date(), isDone: Bool = false, color: Color) {
+    public init(id: String = "", title: String = "", memo: String = "", endDate: Date = Date(), isDone: Bool = false, color: Color) {
         self.id = id
         self.title = title
         self.memo = memo
@@ -36,19 +49,20 @@ public struct TodoVO: Identifiable, Equatable, Hashable, CalendarVO {
         self.color = color
     }
     
-    public let id: Int
+    public let id: String
     public let title: String
     public let memo: String
     public let endDate: Date
     public var isDone: Bool
     public var color: Color
+    public var shared: [String] = []
     
     public var startDate: Date { endDate }
 }
 
 public struct ScheduleVO: Identifiable, Equatable, CalendarVO {
     
-    public init(id: Int = UUID().hashValue, title: String, startDate: Date, endDate: Date, memo: String, color: Color) {
+    public init(id: String = "", title: String, startDate: Date, endDate: Date, memo: String, color: Color) {
         self.id = id
         self.title = title
         self.startDate = startDate
@@ -57,12 +71,13 @@ public struct ScheduleVO: Identifiable, Equatable, CalendarVO {
         self.color = color
     }
     
-    public var id: Int
+    public var id: String
     public var title: String
     public var startDate: Date
     public var endDate: Date
     public var memo: String
     public var color: Color
+    public var shared: [String] = []
 }
 
 public extension ScheduleVO {
@@ -87,14 +102,16 @@ public extension ScheduleVO {
 
 public struct DiaryVO: Identifiable, Equatable {
     
-    public init(date: Date = Date(), content: String = "") {
+    public init(id: String = "", date: Date = Date(), content: String = "") {
+        self.id = id
         self.date = date
         self.content = content
     }
     
-    public var id: Date { date }
+    public var id: String
     public let date: Date
     public let content: String
+    public var shared: [String] = []
     
 }
 

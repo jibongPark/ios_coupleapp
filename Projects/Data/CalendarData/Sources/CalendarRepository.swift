@@ -10,133 +10,403 @@ import Domain
 import ComposableArchitecture
 import RealmKit
 import RealmSwift
+import CommonData
+import Moya
+
+import Core
+
+import Foundation
+
+public typealias MoyaResultHandler = (Result<Response, MoyaError>) -> Void
 
 
-public struct CalendarRepositoryImpl: CalendarRepository {
+public final class CalendarRepositoryImpl: CalendarRepository {
     
+    @Dependency(\.authInterceptor) var authInterceptor
     @Dependency(\.realmKit) var realmKit
+    
+    private var fetchDateManager = FetchDateManager()
     
     public init() {}
     
-    public func fetchTodo(ofMonth: Date) -> ComposableArchitecture.Effect<[String : [Domain.TodoVO]]> {
+    private lazy var session = Session(interceptor: authInterceptor)
+
+    private lazy var provider = MoyaProvider<CalendarAPI>(session: session)
+    
+    public func fetch(for date: Date) -> Effect<CalendarDatas> {
         
-        let schemaVersion: UInt64 = 3
+        let (startDate, endDate) = gridStartAndEnd(for: date)
         
-        let config = Realm.Configuration(
-            schemaVersion: schemaVersion,
-            migrationBlock: { migration, oldSchemaVersion in
-                if oldSchemaVersion < schemaVersion {
-                    migration.enumerateObjects(ofType: ScheduleDTO.className()) { oldObject, newObject in
-                        newObject?["color"] = 0
-                    }
-                    
-                    migration.enumerateObjects(ofType: TodoDTO.className()) { oldObject, newObject in
-                        newObject?["color"] = 0
+        let startDateString = ISO8601DateFormatter().string(from: startDate)
+        let endDateString = ISO8601DateFormatter().string(from: endDate)
+        
+        let lastDate = fetchDateManager.lastFetch(for: date)
+        
+        let lastDateString = lastDate != nil ? ISO8601DateFormatter().string(from: lastDate!) : ""
+        
+        
+        return Effect.run { [self] send async in
+            
+            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
+               didLogin {
+                let result: Result<Response, MoyaError> = await withCheckedContinuation { continuation in
+                    provider.request(.calendar(startDate: startDateString, endDate: endDateString, lastFetch: lastDateString)) { moyaResult in
+                        switch moyaResult {
+                        case .success(let response):
+                            continuation.resume(returning: .success(response))
+                        case .failure(let moyaError):
+                            continuation.resume(returning: .failure(moyaError))
+                        }
                     }
                 }
+                
+                switch result {
+                case .success(let resp):
+                    do {
+                        let apiResp: APIResponse<CalendarDTO> =
+                        try resp.mapAPIResponse(CalendarDTO.self)
+                        
+                        if let schedules = apiResp.data?.schedules {
+                            realmKit.addDatas(schedules)
+                        }
+                        
+                        if let todos = apiResp.data?.todos {
+                            realmKit.addDatas(todos)
+                        }
+                        
+                        if let diaries = apiResp.data?.diaries {
+                            realmKit.addDatas(diaries)
+                        }
+                        
+                        fetchDateManager.updateLastFetch(date)
+                    } catch {
+                        
+                    }
+                    break
+                case .failure:
+                    break
+                }
             }
-        )
-        Realm.Configuration.defaultConfiguration = config
-        
-        let calendar = Calendar.current
-        
-        let components = calendar.dateComponents([.year, .month], from: ofMonth)
-        
-        let year = components.year
-        let month = components.month
-        
-        let startOfMonth = calendar.date(from: DateComponents(year: year, month: month, day: 1, hour: 0, minute: 0, second: 0))!
-        
-        let startOfNextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
-        
-        
-        return .run { send in
-            let todos = realmKit.fetchAllData(type: TodoDTO.self)
-                .filter("endDate >= %@ AND endDate < %@", startOfMonth, startOfNextMonth)
             
-            let todoDTOs = Dictionary(grouping: todos) { todo in
-                todo.endDate.calendarKeyString
-            }
+            async let todoDic: [String: [TodoVO]] = fetchTodo(withStartDate: startDate, endDate: endDate)
+            async let diaryDic: [String : DiaryVO] = fetchDiary(withStartDate: startDate, endDate: endDate)
+            async let scheduleDic: [String : [Domain.ScheduleVO]] = fetchSchedule(withStartDate: startDate, endDate: endDate)
             
-            let todoVOs = todoDTOs.mapValues { dtoArray in
-                dtoArray.map { $0.toVO() }
-            }
+            let (todoResult, diaryRsult, scheduleResult) = await (todoDic, diaryDic, scheduleDic)
             
-            await send(todoVOs)
+            await send(CalendarDatas(todos: todoResult, diaries: diaryRsult, schedules: scheduleResult))
         }
     }
     
-    public func fetchDiary(ofMonth: Date) -> ComposableArchitecture.Effect<[String : Domain.DiaryVO]> {
-        let calendar = Calendar.current
+    public func fetchTodo(withStartDate start: Date, endDate end: Date) -> [String : [Domain.TodoVO]] {
         
-        let components = calendar.dateComponents([.year, .month], from: ofMonth)
+        let todos = realmKit.fetchAllData(type: TodoDTO.self)
+            .filter("endDate >= %@ AND endDate < %@", start, end)
         
-        let year = components.year
-        let month = components.month
-        
-        let startOfMonth = calendar.date(from: DateComponents(year: year, month: month, day: 1, hour: 0, minute: 0, second: 0))!
-        
-        let startOfNextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
-        
-        
-        return .run { send in
-            let diaries = realmKit.fetchAllData(type: DiaryDTO.self)
-                .filter("date >= %@ AND date < %@", startOfMonth.calendarKeyString, startOfNextMonth.calendarKeyString)
-            
-            let diariesDic = Dictionary(uniqueKeysWithValues:diaries.map { ($0.date, $0.toVO()) })
-            
-            await send(diariesDic)
+        let todoDTOs = Dictionary(grouping: todos) { todo in
+            todo.endDate.calendarKeyString
         }
+        
+        let todoVOs = todoDTOs.mapValues { dtoArray in
+            dtoArray.map { $0.toVO() }
+        }
+        
+        return todoVOs
     }
     
-    public func fetchSchedule(ofMonth: Date) -> ComposableArchitecture.Effect<[String : [Domain.ScheduleVO]]> {
+    public func fetchDiary(withStartDate start: Date, endDate end: Date) -> [String : Domain.DiaryVO] {
         
-            let calendar = Calendar.current
+        let diaries = realmKit.fetchAllData(type: DiaryDTO.self)
+            .filter("date >= %@ AND date < %@", start, end)
+        
+        let diariesDic = Dictionary(uniqueKeysWithValues:diaries.map { ($0.date.calendarKeyString, $0.toVO()) })
+        
+        return diariesDic
+    }
+    
+    public func fetchSchedule(withStartDate start: Date, endDate end: Date) -> [String : [Domain.ScheduleVO]] {
+        
+        let schedules = realmKit.fetchAllData(type: ScheduleDTO.self)
+            .filter("endDate >= %@ AND startDate < %@", start, end)
+        
+        let scheduleVOArray = schedules.map {
+            $0.toVO()
+        }
+        
+        var scheduleVOs = [String: [ScheduleVO]]()
+        
+        for schedule in scheduleVOArray {
+            let keys = schedule.dateKeys()
             
-            let components = calendar.dateComponents([.year, .month], from: ofMonth)
-            
-            let year = components.year
-            let month = components.month
-            
-            let startOfMonth = calendar.date(from: DateComponents(year: year, month: month, day: 1, hour: 0, minute: 0, second: 0))!
-            
-            let startOfNextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
-            
-            
-            return .run { send in
-                let schedules = realmKit.fetchAllData(type: ScheduleDTO.self)
-                    .filter("endDate >= %@ AND startDate < %@", startOfMonth, startOfNextMonth)
-                
-                let scheduleVOArray = schedules.map {
-                    $0.toVO()
-                }
-                
-                var scheduleVOs = [String: [ScheduleVO]]()
-                
-                for schedule in scheduleVOArray {
-                    let keys = schedule.dateKeys()
-                    
-                    for key in keys {
-                        scheduleVOs[key, default: []].append(schedule)
-                    }
-                }
-                
-                await send(scheduleVOs)
+            for key in keys {
+                scheduleVOs[key, default: []].append(schedule)
             }
+        }
+        
+        return scheduleVOs
     }
     
     public func updateTodo(_ todo: Domain.TodoVO) {
-        realmKit.addData(TodoDTO(from:todo))
+        
+        let handleTodoResponse: MoyaResultHandler = { [self] result in
+            switch result {
+            case .success(let response):
+                do {
+                    let apiResp: APIResponse<TodoDTO> =
+                        try response.mapAPIResponse(TodoDTO.self)
+                    if let todo = apiResp.data {
+                        realmKit.addData(todo)
+                    }
+                } catch {
+                    print("디코딩 실패:", error)
+                }
+            case .failure(let error):
+                print("통신 실패:", error)
+            }
+        }
+        
+        if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
+           didLogin {
+            
+            if todo.id.isEmpty {
+                provider.request(.createTodo(todo: TodoDTO(from: todo))) { handleTodoResponse($0) }
+            } else {
+                
+                let saved = realmKit.fetchData(type: TodoDTO.self, forKey: todo.id)!
+                
+                let title: String? = saved.title == todo.title ? nil : todo.title
+                let isDone: Bool? = saved.isDone == todo.isDone ? nil : todo.isDone
+                let endDate = saved.endDate == todo.endDate ? nil : todo.endDate
+                let memo = saved.memo == todo.memo ? nil : todo.memo
+                let color = saved.color == todo.color.toInt() ? nil : todo.color.toInt()
+                let shared = Array(saved.shared) == todo.shared ? nil : todo.shared
+                
+                provider.request(.updateTodo(id: todo.id, title: title, isDone: isDone, endDate: endDate, memo: memo, color: color, shared: shared)) { handleTodoResponse($0) }
+            }
+            
+        } else {
+            
+            let dto = TodoDTO(from:todo)
+            
+            if dto.id.isEmpty {
+                dto.id = "local_\(UUID().hashValue)"
+            }
+            
+            dto.updatedAt = Date()
+            
+            realmKit.addData(dto)
+        }
     }
     
     public func updateDiary(_ diary: Domain.DiaryVO) {
-        realmKit.addData(DiaryDTO(from: diary))
+        
+        let handleDiaryResponse: MoyaResultHandler = { [self] result in
+            switch result {
+            case .success(let response):
+                do {
+                    let apiResp: APIResponse<DiaryDTO> =
+                        try response.mapAPIResponse(DiaryDTO.self)
+                    if let diary = apiResp.data {
+                        realmKit.addData(diary)
+                    }
+                } catch {
+                    print("디코딩 실패:", error)
+                }
+            case .failure(let error):
+                print("통신 실패:", error)
+            }
+        }
+        
+        if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
+           didLogin {
+            
+            if diary.id.isEmpty {
+                provider.request(.createDiary(diary: DiaryDTO(from: diary))) { handleDiaryResponse($0) }
+            } else {
+                
+                let saved = realmKit.fetchData(type: DiaryDTO.self, forKey: diary.id)!
+                
+                let content: String? = saved.content == diary.content ? nil : diary.content
+                let date = saved.date == diary.date ? nil : diary.date
+                let shared = Array(saved.shared) == diary.shared ? nil : diary.shared
+                
+                provider.request(.updateDiary(id: diary.id, date: date, content: content, shared: shared)) { handleDiaryResponse($0) }
+            }
+            
+        } else {
+            
+            let dto = DiaryDTO(from: diary)
+            
+            if dto.id.isEmpty {
+                dto.id = "local_\(UUID().hashValue)"
+            }
+            
+            dto.updatedAt = Date()
+            
+            realmKit.addData(dto)
+        }
     }
     
     public func updateSchedule(_ schedule: Domain.ScheduleVO) {
-        realmKit.addData(ScheduleDTO(from: schedule))
+        
+        let handleScheduleResponse: MoyaResultHandler = { [self] result in
+            switch result {
+            case .success(let response):
+                do {
+                    let apiResp: APIResponse<ScheduleDTO> =
+                        try response.mapAPIResponse(ScheduleDTO.self)
+                    if let schedule = apiResp.data {
+                        realmKit.addData(schedule)
+                    }
+                } catch {
+                    print("디코딩 실패:", error)
+                }
+            case .failure(let error):
+                print("통신 실패:", error)
+            }
+        }
+        
+        if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
+           didLogin {
+            
+            if schedule.id.isEmpty {
+                provider.request(.createSchedule(schedule: ScheduleDTO(from: schedule))) { handleScheduleResponse($0) }
+            } else {
+                
+                let saved = realmKit.fetchData(type: ScheduleDTO.self, forKey: schedule.id)!
+                
+                let title: String? = saved.title == schedule.title ? nil : schedule.title
+                let startDate = saved.startDate == schedule.startDate ? nil : schedule.startDate
+                let endDate = saved.endDate == schedule.endDate ? nil : schedule.endDate
+                let memo = saved.memo == schedule.memo ? nil : schedule.memo
+                let color = saved.color == schedule.color.toInt() ? nil : schedule.color.toInt()
+                let shared = Array(saved.shared) == schedule.shared ? nil : schedule.shared
+                
+                provider.request(.updateSchedule(id: schedule.id, title: title, startDate: startDate, endDate: endDate, memo: memo, color: color, shared: shared)) { handleScheduleResponse($0) }
+            }
+            
+        } else {
+            
+            let dto = ScheduleDTO(from: schedule)
+            
+            if dto.id.isEmpty {
+                dto.id = "local_\(UUID().hashValue)"
+            }
+            
+            dto.updatedAt = Date()
+            
+            realmKit.addData(dto)
+        }
     }
     
+    public func deleteTodo(_ id: String) {
+        
+        if !id.hasPrefix("local_") {
+            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
+               didLogin {
+                provider.request(.deleteTodo(id: id)) { [self] result in
+                    switch result {
+                    case .success(let response):
+                        if response.statusCode == 200 || response.statusCode == 204 {
+                            realmKit.deleteData(TodoDTO.self, withId: id)
+                        } else {
+                            
+                        }
+                    case .failure(_): break
+                        
+                    }
+                }
+            } else {
+                realmKit.deleteData(TodoDTO.self, withId: id)
+                let op = CalendarOp(id: id, type: "todo", method: "delete")
+                realmKit.addData(op)
+            }
+        } else {
+            realmKit.deleteData(TodoDTO.self, withId: id)
+        }
+        
+    }
+    
+    public func deleteDiary(_ id: String) {
+        
+        if !id.hasPrefix("local_") {
+            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
+               didLogin {
+                provider.request(.deleteDiary(id: id)) { [self] result in
+                    switch result {
+                    case .success(let response):
+                        if response.statusCode == 200 || response.statusCode == 204 {
+                            realmKit.deleteData(DiaryDTO.self, withId: id)
+                        } else {
+                            
+                        }
+                    case .failure(_): break
+                        
+                    }
+                }
+            } else {
+                realmKit.deleteData(DiaryDTO.self, withId: id)
+                let op = CalendarOp(id: id, type: "diary", method: "delete")
+                realmKit.addData(op)
+            }
+        } else {
+            realmKit.deleteData(DiaryDTO.self, withId: id)
+        }
+        
+    }
+    
+    public func deleteSchedule(_ id: String) {
+        
+        if !id.hasPrefix("local_") {
+            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
+               didLogin {
+                provider.request(.deleteSchedule(id: id)) { [self] result in
+                    switch result {
+                    case .success(let response):
+                        if response.statusCode == 200 || response.statusCode == 204 {
+                            realmKit.deleteData(ScheduleDTO.self, withId: id)
+                        } else {
+                            
+                        }
+                    case .failure(_): break
+                        
+                    }
+                }
+            } else {
+                realmKit.deleteData(ScheduleDTO.self, withId: id)
+                let op = CalendarOp(id: id, type: "todo", method: "delete")
+                realmKit.addData(op)
+            }
+        } else {
+            realmKit.deleteData(ScheduleDTO.self, withId: id)
+        }
+        
+    }
+    
+    public func syncServer() {
+        
+    }
+    
+    private func gridStartAndEnd(for monthDate: Date) -> (start: Date, end: Date) {
+        
+        let calendar = Calendar.current
+        
+        let comps = calendar.dateComponents([.year, .month], from: monthDate)
+        let firstOfMonth = calendar.date(from: comps)!
+
+        let weekdayOfFirst = calendar.component(.weekday, from: firstOfMonth)
+        let prefixDays = (weekdayOfFirst - calendar.firstWeekday + 7) % 7
+
+        let daysInMonth = calendar.range(of: .day, in: .month, for: monthDate)!.count
+
+        let totalSlots = Int(ceil(Double(prefixDays + daysInMonth) / 7.0)) * 7
+
+        let gridStart = calendar.date(byAdding: .day, value: -prefixDays, to: firstOfMonth)!
+
+        let gridEnd = calendar.date(byAdding: .day, value: totalSlots, to: gridStart)!
+
+        return (start: gridStart, end: gridEnd)
+      }
     
 }
 

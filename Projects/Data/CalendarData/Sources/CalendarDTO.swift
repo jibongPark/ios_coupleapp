@@ -12,20 +12,30 @@ import Domain
 import RealmSwift
 import SwiftUICore
 
-final class TodoDTO: Object {
+struct CalendarDTO: Decodable {
+    var todos: [TodoDTO]
+    var schedules: [ScheduleDTO]
+    var diaries: [DiaryDTO]
+}
+
+public final class TodoDTO: Object, Decodable {
     
-    @Persisted(primaryKey: true) public var id: Int
+    @Persisted(primaryKey: true) public var id: String
+    @Persisted public var author: String
     @Persisted public var title: String
     @Persisted public var memo: String
     @Persisted public var endDate: Date
     @Persisted public var isDone: Bool
     @Persisted public var color: Int
+    @Persisted public var shared: List<String>
+    @Persisted public var createdAt: Date
+    @Persisted public var updatedAt: Date
     
     public override init() {
         
     }
     
-    public init(id: Int = UUID().hashValue, title: String, memo: String, endDate: Date, isDone: Bool) {
+    public init(id: String = "", title: String, memo: String, endDate: Date, isDone: Bool) {
         super.init()
         self.id = id
         self.title = title
@@ -49,19 +59,23 @@ final class TodoDTO: Object {
     }
 }
 
-final class ScheduleDTO: Object {
+public final class ScheduleDTO: Object, Decodable {
     
-    @Persisted(primaryKey: true) public var id: Int
+    @Persisted(primaryKey: true) public var id: String
+    @Persisted public var author: String
     @Persisted public var title: String
     @Persisted public var startDate: Date
     @Persisted public var endDate: Date
     @Persisted public var memo: String
     @Persisted public var color: Int
+    @Persisted public var shared: List<String>
+    @Persisted public var createdAt: Date
+    @Persisted public var updatedAt: Date
     
     public override init() {
     }
     
-    public init(id: Int = UUID().hashValue, title: String, startDate: Date, endDate: Date, memo: String) {
+    public init(id: String = "", title: String, startDate: Date, endDate: Date, memo: String) {
         super.init()
         self.id = id
         self.title = title
@@ -85,28 +99,49 @@ final class ScheduleDTO: Object {
     }
 }
 
-final class DiaryDTO: Object {
+public final class DiaryDTO: Object, Decodable {
     
-    @Persisted(primaryKey: true) public var date: String
+    @Persisted(primaryKey: true) public var id: String
+    @Persisted public var author: String
+    @Persisted public var date: Date
     @Persisted public var content: String
+    @Persisted public var shared: List<String>
+    @Persisted public var createdAt: Date
+    @Persisted public var updatedAt: Date
     
     public override init() {
     }
     
     public init(date: Date, content: String) {
         super.init()
-        self.date = date.calendarKeyString
+        self.date = date
         self.content = content
     }
     
     public init(from vo: DiaryVO) {
         super.init()
-        self.date = vo.date.calendarKeyString
+        self.date = vo.date
         self.content = vo.content
     }
     
     public func toVO() -> DiaryVO {
-        return DiaryVO(date: Date.calendarKeyFormatter.date(from: date)!, content: content)
+        return DiaryVO(date: date, content: content)
+    }
+}
+
+public final class CalendarOp: Object {
+    @Persisted(primaryKey: true) public var id: String
+    @Persisted public var type: String
+    @Persisted public var method: String
+    
+    public override init() {
+        
     }
     
+    public init(id: String, type: String, method: String) {
+        super.init()
+        self.id = id
+        self.type = type
+        self.method = method
+    }
 }

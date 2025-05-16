@@ -50,26 +50,6 @@ public struct MapRepositoryImpl: MapRepository {
     public func fetchTrips() -> ComposableArchitecture.Effect<[Int : Domain.TripVO]> {
         .run { send in
             
-            let schemaVersion: UInt64 = 3
-            
-            let config = Realm.Configuration(
-                schemaVersion: schemaVersion,
-                migrationBlock: { migration, oldSchemaVersion in
-                    if oldSchemaVersion < schemaVersion {
-                        migration.enumerateObjects(ofType: TripDTO.className()) { oldObject, newObject in
-                            newObject?["scale"] = 1.0
-                            newObject?["centerX"] = 0.0
-                            newObject?["centerY"] = 0.0
-                            
-                            if let oldImages = oldObject?["images"] as? List<Data> {
-                                newObject?["images"] = List<String>()
-                            }
-                        }
-                    }
-                }
-            )
-            Realm.Configuration.defaultConfiguration = config
-            
             let tripDatas = realmKit.fetchAllData(type: TripDTO.self)
             let tripDic = Dictionary(uniqueKeysWithValues:tripDatas.map { ($0.sigunguCode, $0.toVO()) })
             await send(tripDic)

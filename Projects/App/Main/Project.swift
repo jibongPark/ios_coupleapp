@@ -10,6 +10,9 @@ let project = Project.configure(
         .Features.Widget.Feature,
         .Features.Setting.Feature,
         .Features.Login.Feature,
+        .Data.Calendar.Data,
+        .external(name: "RealmSwift"),
+        .external(name: "Realm"),
     ],
     hasResources: true
 )

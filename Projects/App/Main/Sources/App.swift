@@ -14,6 +14,8 @@ import KakaoSDKAuth
 @main
 struct MyApp: App {
     
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     private let store: StoreOf<AppReducer>
     
     init() {

@@ -22,7 +22,7 @@ struct TodoReducer {
     
     @ObservableState
     struct State: Equatable {
-        init(id: Int = UUID().hashValue, date: Date, title: String = "", content: String = "", isDone: Bool = false, color: Color = .blue) {
+        init(id: String = "", date: Date, title: String = "", content: String = "", isDone: Bool = false, color: Color = .blue) {
             self.id = id
             self.date = date
             self.title = title
@@ -31,7 +31,7 @@ struct TodoReducer {
             self.color = color
         }
         
-        var id: Int
+        var id: String
         var date: Date
         var title: String
         var content: String

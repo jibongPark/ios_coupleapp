@@ -55,9 +55,7 @@ struct CalendarReducer {
     enum Action {
         case destination(PresentationAction<Destination.Action>)
         case searchAllData
-        case diaryDataLoaded([String: DiaryVO])
-        case todoDataLoaded([String: [TodoVO]])
-        case scheduleDataLoaded([String: [ScheduleVO]])
+        case didLoadData(CalendarDatas)
         case navigateTo(Route)
         case selectedMonthChange(Date)
         case selectedDateChange(Date)
@@ -79,33 +77,15 @@ struct CalendarReducer {
                 let month = state.selectedMonth
                 
                 return .merge(
-                    calendarRepository.fetch()
-                        .map { @Sendable vo in
-                                .didTapGotoToday
-                        },
-                    calendarRepository.fetchDiary(ofMonth: month)
-                        .map { @Sendable diaryVOs in
-                            Action.diaryDataLoaded(diaryVOs)
-                        },
-                    calendarRepository.fetchTodo(ofMonth: month)
-                        .map { @Sendable todoVOs in
-                            Action.todoDataLoaded(todoVOs)
-                        },
-                    calendarRepository.fetchSchedule(ofMonth: month)
-                        .map { @Sendable scheduleVOs in
-                            Action.scheduleDataLoaded(scheduleVOs)
+                    calendarRepository.fetch(for: month)
+                        .map { @Sendable datas in
+                                .didLoadData(datas)
                         }
                 )
-            case .diaryDataLoaded(let diaryDatas):
-                state.diaryData = diaryDatas
-                return .none
-                
-            case .todoDataLoaded(let todoDatas):
-                state.todoData = todoDatas
-                return .none
-                
-            case .scheduleDataLoaded(let scheduleDatas):
-                state.scheduleData = scheduleDatas
+            case .didLoadData(let datas):
+                state.diaryData = datas.diaries
+                state.todoData = datas.todos
+                state.scheduleData = datas.schedules
                 return .none
                 
             case let .navigateTo(navigateType):
@@ -126,7 +106,7 @@ struct CalendarReducer {
                     
                 case let .todo(todoVO):
                     
-                    let id = todoVO?.id ?? UUID().hashValue
+                    let id = todoVO?.id ?? ""
                     let date = todoVO?.endDate ?? state.selectedDate
                     let title = todoVO?.title ?? ""
                     let content = todoVO?.memo ?? ""
@@ -147,7 +127,7 @@ struct CalendarReducer {
                     
                 case let .schedule(scheduleVO):
                     
-                    let id = scheduleVO?.id ?? UUID().hashValue
+                    let id = scheduleVO?.id ?? ""
                     let title = scheduleVO?.title ?? ""
                     let startDate = scheduleVO?.startDate ?? state.selectedDate
                     let endDate = scheduleVO?.endDate ?? state.selectedDate

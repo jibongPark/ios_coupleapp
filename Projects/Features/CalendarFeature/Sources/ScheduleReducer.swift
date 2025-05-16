@@ -22,7 +22,7 @@ public struct ScheduleReducer {
     
     @ObservableState
     public struct State: Equatable {
-        public init(id: Int = UUID().hashValue, title: String = "", content: String = "", startDate: Date = Date(), endDate: Date = Date(), color: Color = .blue) {
+        public init(id: String = "", title: String = "", content: String = "", startDate: Date = Date(), endDate: Date = Date(), color: Color = .blue) {
             self.id = id
             self.title = title
             self.content = content
@@ -31,7 +31,7 @@ public struct ScheduleReducer {
             self.color = color
         }
         
-        var id: Int
+        var id: String
         var title: String
         var startDate: Date
         var endDate: Date
@@ -66,7 +66,7 @@ public struct ScheduleReducer {
                 
                 return .run { [scheduleVO = scheduleVO] send in
                     await send(.saveSchedule(scheduleVO))
-                    await send(.delegate(.addSchedule(scheduleVO)))
+//                    await send(.delegate(.addSchedule(scheduleVO)))
                     await self.dismiss()
                 }
                 

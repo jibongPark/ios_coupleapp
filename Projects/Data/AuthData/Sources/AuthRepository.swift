@@ -74,6 +74,9 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
                         authManager.updateUserName(userName)
                         authManager.updateToken(access: accessToken, refresh: refreshToken)
                         
+                        ConfigManager.shared.set("userName", userName)
+                        ConfigManager.shared.set("didLogin", true)
+                        
                         await send(DataResult(userName))
                         
                     } else {
