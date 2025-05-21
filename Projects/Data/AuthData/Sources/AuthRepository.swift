@@ -136,6 +136,8 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
     }
     
     public func logoutUser() {
+        ConfigManager.shared.set("userName", "")
+        ConfigManager.shared.set("didLogin", false)
         authManager.clear()
     }
     

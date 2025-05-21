@@ -39,23 +39,26 @@ public final class AuthInterceptor: RequestInterceptor {
         
         let refreshProvider = MoyaProvider<RefreshAPI>(session: .default)
         
-        refreshProvider.request(.refresh(token: authManager.refreshToken!)) { [self] result in
-            switch result {
-            case .success(let response):
-                do {
-                    let convertResponse: APIResponse<AuthTokens> = try response.mapAPIResponse(AuthTokens.self)
-                    
-                    let accessToken = convertResponse.data!.accessToken
-                    let refreshToken = convertResponse.data!.newRefreshToken
-                    authManager.updateToken(access: accessToken, refresh: refreshToken)
-                    
-                    print("Retry-토큰 재발급 성공")
-                    completion(.retry)
-                } catch {
-                    
+        if let token = authManager.refreshToken {
+            refreshProvider.request(.refresh(token: token)) { [self] result in
+                switch result {
+                case .success(let response):
+                    do {
+                        let convertResponse: APIResponse<AuthTokens> = try response.mapAPIResponse(AuthTokens.self)
+                        
+                        let accessToken = convertResponse.data!.accessToken
+                        let refreshToken = convertResponse.data!.newRefreshToken
+                        authManager.updateToken(access: accessToken, refresh: refreshToken)
+                        
+                        print("Retry-토큰 재발급 성공")
+                        completion(.retry)
+                    } catch {
+                        
+                    }
+                case .failure(let error):
+                    authManager.clear()
+                    completion(.doNotRetryWithError(error))
                 }
-            case .failure(let error):
-                completion(.doNotRetryWithError(error))
             }
         }
     }

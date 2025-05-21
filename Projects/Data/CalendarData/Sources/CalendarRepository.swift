@@ -24,6 +24,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
     
     @Dependency(\.authInterceptor) var authInterceptor
     @Dependency(\.realmKit) var realmKit
+    @Dependency(\.authManager) var authManager
     
     private var fetchDateManager = FetchDateManager()
     
@@ -385,6 +386,72 @@ public final class CalendarRepositoryImpl: CalendarRepository {
     
     public func syncServer() {
         
+        let lastDate = authManager.lastLoginDate()
+        
+        let localPrefix = "local_"
+        
+        let ops = realmKit.fetchAllData(type: CalendarOp.self)
+            .toArray()
+        
+        let todos = realmKit.fetchAllData(type: TodoDTO.self)
+            .filter("NOT id BEGINSWITH %@ AND updatedAt > %@", localPrefix, lastDate)
+            .toArray()
+        
+        let delTodos = realmKit.fetchAllData(type: TodoDTO.self)
+            .filter("id BEGINSWITH %@", localPrefix)
+            .toArray()
+        
+        let schedules = realmKit.fetchAllData(type: ScheduleDTO.self)
+            .filter("NOT id BEGINSWITH %@ AND updatedAt > %@", localPrefix, lastDate)
+            .toArray()
+        
+        let delSchedules = realmKit.fetchAllData(type: ScheduleDTO.self)
+            .filter("id BEGINSWITH %@", localPrefix)
+            .toArray()
+        
+        let diaries = realmKit.fetchAllData(type: DiaryDTO.self)
+            .filter("NOT id BEGINSWITH %@ AND updatedAt > %@", localPrefix, lastDate)
+            .toArray()
+        
+        let delDiaries = realmKit.fetchAllData(type: DiaryDTO.self)
+            .filter("id BEGINSWITH %@", localPrefix)
+            .toArray()
+        
+        provider.request(.sync(ops: ops, todos: todos + delTodos, schedules: schedules + delSchedules, diaries: diaries + delDiaries)) { [self] result in
+            switch result {
+            case .success(let resp):
+                
+                do {
+                    let apiResp: APIResponse<CalendarDTO> =
+                    try resp.mapAPIResponse(CalendarDTO.self)
+                    
+                    if apiResp.success {
+                        realmKit.deleteDatas(ops)
+                        realmKit.deleteDatas(delTodos)
+                        realmKit.deleteDatas(delDiaries)
+                        realmKit.deleteDatas(delSchedules)
+                        
+                        if let schedules = apiResp.data?.schedules {
+                            realmKit.addDatas(schedules)
+                        }
+                        
+                        if let todos = apiResp.data?.todos {
+                            realmKit.addDatas(todos)
+                        }
+                        
+                        if let diaries = apiResp.data?.diaries {
+                            realmKit.addDatas(diaries)
+                        }
+                    }
+                } catch {
+                    print(error)
+                }
+                break
+            case .failure(let err):
+                print(err);
+                break
+            }
+        }
     }
     
     private func gridStartAndEnd(for monthDate: Date) -> (start: Date, end: Date) {
@@ -419,5 +486,11 @@ public extension DependencyValues {
     var calendarRepository: CalendarRepository {
         get { self[CalendarRepoKey.self] }
         set { self[CalendarRepoKey.self] = newValue }
+    }
+}
+
+extension Results {
+    func toArray() -> [Element] {
+        return Array(self)
     }
 }

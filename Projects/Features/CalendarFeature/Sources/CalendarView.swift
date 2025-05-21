@@ -593,6 +593,10 @@ public struct CalendarFeature: CalendarInterface {
             CalendarView(store: self.store)
         )
     }
+    
+    public func sync() {
+        store.send(.sync)
+    }
 }
 
 enum CalendarFeatureKey: DependencyKey {

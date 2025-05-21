@@ -45,6 +45,14 @@ public class RealmKit {
             }
         }
     }
+    
+    public func deleteDatas<T: Object>(_ objects: [T]) {
+        try! realm.write {
+            for object in objects {
+                realm.delete(object)
+            }
+        }
+    }
 }
 
 public class TestRealmKit: RealmKit {

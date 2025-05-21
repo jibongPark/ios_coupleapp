@@ -64,6 +64,7 @@ struct CalendarReducer {
         
         case didTapMonth
         case didTapGotoToday
+        case sync
     }
     
     static let reducer = Self()
@@ -179,6 +180,10 @@ struct CalendarReducer {
                     await send(.selectedMonthChange(Date()))
                     await send(.selectedDateChange(Date()))
                 }
+                
+            case .sync:
+                calendarRepository.syncServer()
+                return .none
                 
             case let .destination(.presented(.diaryView(.delegate(.addDiary(diary))))):
                 state.diaryData[diary.date.calendarKeyString] = diary

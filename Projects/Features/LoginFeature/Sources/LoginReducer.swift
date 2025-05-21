@@ -34,6 +34,7 @@ public struct LoginReducer {
     }
     
     public enum Action: BindableAction {
+        case delegate(Delegate)
         case binding(BindingAction<State>)
         case loginButtonTapped(LoginType)
         case didSuccessLocalLogin(LoginVO)
@@ -41,12 +42,19 @@ public struct LoginReducer {
         case didFinishServerLogin(DataResult<String>)
         case logout
         case loadUserData
+        
+        public enum Delegate: Equatable {
+            case didSuccessLogin
+        }
     }
     
     public var body: some ReducerOf<Self> {
         BindingReducer()
         Reduce { state, action in
             switch action {
+                
+            case .delegate:
+                return .none
                 
             case .loginButtonTapped(.kakao):
                 
@@ -71,6 +79,7 @@ public struct LoginReducer {
                 
                 if result.isSuccess {
                     state.name = result.data ?? ""
+                    return .send(.delegate(.didSuccessLogin))
                 }
                 
                 return .none

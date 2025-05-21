@@ -194,6 +194,8 @@ struct LoginDialog: View {
 @Reducer
 struct AppReducer {
     
+    @Dependency(\.calendarFeature) var calendarFeature
+    
     init() {
         
     }
@@ -247,6 +249,11 @@ struct AppReducer {
 //            case .destination(.presented(.diaryView(.delegate(.addDiary(diary))))):
 //                state.diaryData[diary.date.calendarKeyString] = diary
 //                return .none
+                
+            case .login(.delegate(.didSuccessLogin)):
+                calendarFeature.sync()
+                return .none
+                
             case .login:
                 return .none
                 

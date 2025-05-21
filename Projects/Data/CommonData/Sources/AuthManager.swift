@@ -8,6 +8,7 @@
 
 import Dependencies
 import Core
+import Foundation
 
 public final class AuthManager {
     
@@ -18,6 +19,9 @@ public final class AuthManager {
     private let nameAccount = "userName"
     private let accessAccount = "accessToken"
     private let refreshAccount = "refreshToken"
+    
+    private let userDefaultsKey = "lastLoginDate"
+    private let userDefaults = UserDefaults.standard
     
     public static let shared = AuthManager()
     
@@ -78,6 +82,12 @@ public final class AuthManager {
         KeychainHelper.standard.delete(service: userService, account: nameAccount)
         KeychainHelper.standard.delete(service: userService, account: accessAccount)
         KeychainHelper.standard.delete(service: userService, account: refreshAccount)
+        
+        userDefaults.set(Date(), forKey: userDefaultsKey)
+    }
+    
+    public func lastLoginDate() -> Date {
+        return userDefaults.object(forKey: userDefaultsKey) as? Date ?? Date()
     }
 }
 

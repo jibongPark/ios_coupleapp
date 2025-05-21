@@ -24,6 +24,8 @@ enum CalendarAPI {
     case createDiary(diary: DiaryDTO)
     case updateDiary(id: String, date: Date?, content: String?, shared: [String]?)
     case deleteDiary(id: String)
+    
+    case sync(ops: [CalendarOp], todos: [TodoDTO], schedules: [ScheduleDTO], diaries: [DiaryDTO])
 }
 
 extension CalendarAPI: TargetType {
@@ -58,6 +60,8 @@ extension CalendarAPI: TargetType {
             return "/diary"
         case .updateDiary(let id, _, _, _), .deleteDiary(let id):
             return "/diary/\(id)"
+        case .sync:
+            return "/sync"
         }
     }
     
@@ -83,6 +87,8 @@ extension CalendarAPI: TargetType {
             return .patch
         case .deleteDiary:
             return .delete
+        case .sync:
+            return .post
         }
     }
 //    (id: String, date: Date, content: String, shared: [String])
@@ -183,7 +189,39 @@ extension CalendarAPI: TargetType {
             
         case .deleteDiary:
             return .requestPlain
+            
+        case let .sync(ops, todos, schedules, diaries):
+            
+            let todoDics = todos.map { todo in
+                ["id": todo.id.hasPrefix("local_") ? "" : todo.id,
+                 "title": todo.title,
+                 "isDone": todo.isDone,
+                 "endDate": ISO8601DateFormatter().string(from: todo.endDate),
+                 "memo": todo.memo,
+                 "color": todo.color,
+                 "shared": Array(todo.shared)]
+            }
+            
+            let scheduleDics = schedules.map { schedule in
+                ["id": schedule.id.hasPrefix("local_") ? "" : schedule.id,
+                 "title": schedule.title,
+                 "startDate": ISO8601DateFormatter().string(from: schedule.startDate),
+                 "endDate": ISO8601DateFormatter().string(from: schedule.endDate),
+                 "memo": schedule.memo,
+                 "color": schedule.color,
+                 "shared": Array(schedule.shared)]
+            }
+            
+            let diaryDics = diaries.map { diary in
+                ["id": diary.id.hasPrefix("local_") ? "" : diary.id,
+                 "date": ISO8601DateFormatter().string(from: diary.date),
+                 "content": diary.content,
+                 "shared": Array(diary.shared)]
+            }
+            
+            return .requestParameters(parameters: ["ops": ops, "todos": todoDics, "schedules": scheduleDics, "diaries": diaryDics], encoding: JSONEncoding.default)
         }
+        
     }
     
     var sampleData: Data {
