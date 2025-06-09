@@ -3,6 +3,7 @@ import ProjectDescription
 
 public extension TargetDependency {
     struct Domains {
+        public struct Friend {}
         public struct Auth {}
         public struct Sample {}
     }
@@ -24,6 +25,12 @@ public extension TargetDependency.Domains.Sample {
 
 public extension TargetDependency.Domains.Auth {
     static let name = "Auth"
+    
+    static let Domain = TargetDependency.Domains.project(name: "\(name)Domain")
+}
+
+public extension TargetDependency.Domains.Friend {
+    static let name = "Friend"
     
     static let Domain = TargetDependency.Domains.project(name: "\(name)Domain")
 }

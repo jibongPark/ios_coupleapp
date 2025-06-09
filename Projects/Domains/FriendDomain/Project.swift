@@ -2,8 +2,9 @@ import ProjectDescription
 import ProjectDescriptionHelpers
 
 let project = Project.configure(
-    moduleType: .domain(name: "{{ name }}"),
+    moduleType: .domain(name: "Friend"),
     product: .framework,
     dependencies: [
+        .external(name: "ComposableArchitecture"),
     ]
 )

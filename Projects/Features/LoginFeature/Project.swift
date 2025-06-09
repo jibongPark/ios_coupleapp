@@ -7,6 +7,7 @@ let project = Project.configure(
     dependencies: [
         .Core.core,
         .Data.Auth.Data,
+        .Domains.Auth.Domain,
         .external(name:"KakaoSDKCommon"),
         .external(name:"KakaoSDKAuth"),
         .external(name:"KakaoSDKUser"),
