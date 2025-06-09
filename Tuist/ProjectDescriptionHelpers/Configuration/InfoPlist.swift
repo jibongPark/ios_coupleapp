@@ -7,7 +7,7 @@ public struct InfoPlist {
         "CFBundleDevelopmentRegion": "ko",
         "CFBundleVersion": "1",
         "UILaunchStoryboardName": "Launch Screen",
-        "UIUserInterfaceStyle": "Light",
+        "UIUserInterfaceStyle": "Automatic",
         "CFBundleIconName": "AppIcon",
         "LSSupportsOpeningDocumentsInPlace": true,
         "ITSAppUsesNonExemptEncryption": false,
