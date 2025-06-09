@@ -8,7 +8,6 @@
 
 import Moya
 import Foundation
-import AuthDomain
 
 enum RefreshAPI {
     case refresh(token: String)

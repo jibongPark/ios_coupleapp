@@ -25,7 +25,7 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
     
     @Dependency(\.authManager) var authManager
     
-    private lazy var provider = MoyaProvider<AuthService>()
+    private lazy var provider = MoyaProvider<AuthAPI>()
     
     public var userName: String? {
         get {
@@ -68,6 +68,7 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
                     if response.success {
                         
                         let userName = response.data!.userName
+                        let uid = response.data!.uid
                         let accessToken = response.data!.accessToken
                         let refreshToken = response.data!.refreshToken
                         
@@ -75,6 +76,7 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
                         authManager.updateToken(access: accessToken, refresh: refreshToken)
                         
                         ConfigManager.shared.set("userName", userName)
+                        ConfigManager.shared.set("uid", uid)
                         ConfigManager.shared.set("didLogin", true)
                         
                         await send(DataResult(userName))

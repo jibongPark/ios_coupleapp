@@ -10,12 +10,12 @@ import Moya
 import Foundation
 import AuthDomain
 
-enum AuthService {
+enum AuthAPI {
     case login(type: LoginType, jwt: String, name: String)
     case refresh(token: String)
 }
 
-extension AuthService: TargetType {
+extension AuthAPI: TargetType {
     var headers: [String : String]? {
         ["Content-Type": "application/json"]
     }
