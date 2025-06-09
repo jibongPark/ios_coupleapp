@@ -3,6 +3,7 @@ import ProjectDescription
 
 public extension TargetDependency {
     struct Data {
+        public struct Friend {}
         public struct Common {}
         public struct Auth {}
         public struct Calendar {}
@@ -45,6 +46,12 @@ public extension TargetDependency.Data.Auth {
 
 public extension TargetDependency.Data.Common {
     static let name = "Common"
+    
+    static let Data = TargetDependency.Data.project(name: "\(name)Data")
+}
+
+public extension TargetDependency.Data.Friend {
+    static let name = "Friend"
     
     static let Data = TargetDependency.Data.project(name: "\(name)Data")
 }

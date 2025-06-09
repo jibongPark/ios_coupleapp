@@ -4,6 +4,7 @@ import ProjectDescription
 
 public extension TargetDependency {
     struct Features {
+        public struct Friend {}
         public struct Login {}
         public struct Setting {}
         public struct Widget {}
@@ -48,6 +49,13 @@ public extension TargetDependency.Features.Setting {
 
 public extension TargetDependency.Features.Login {
     static let name = "Login"
+    
+    static let Feature = TargetDependency.Features.project(name: "\(name)Feature")
+    static let Interface = TargetDependency.project(target: "\(name)FeatureInterface", path: .relativeToFeature("\(name)Feature"))
+}
+
+public extension TargetDependency.Features.Friend {
+    static let name = "Friend"
     
     static let Feature = TargetDependency.Features.project(name: "\(name)Feature")
     static let Interface = TargetDependency.project(target: "\(name)FeatureInterface", path: .relativeToFeature("\(name)Feature"))
