@@ -23,12 +23,8 @@ struct CalendarTests {
         }
         
         await store.receive(\.searchAllData)
- 
-        await store.receive(\.scheduleDataLoaded, timeout: 10)
-          
-        await store.receive(\.diaryDataLoaded, timeout: 10)
         
-        await store.receive(\.todoDataLoaded, timeout: 10)
+        await store.receive(\.didLoadData, timeout: 10)
         
     }
 }
