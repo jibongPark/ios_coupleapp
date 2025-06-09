@@ -154,15 +154,25 @@ struct sideBarMenu: View {
             })
             .foregroundStyle(.black)
             
+            Button(action: {
+                
+            }, label: {
+                Image(systemName: "person.2")
+                Text("친구")
+            })
+            .foregroundStyle(.black)
+            
             Spacer()
             
-            Button(action: {
-                store.send(.logout)
-            }, label: {
-                Text("로그아웃")
-                    .font(.caption2)
-            })
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            if store.login.name != nil {
+                Button(action: {
+                    store.send(.logout)
+                }, label: {
+                    Text("로그아웃")
+                        .font(.caption2)
+                })
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
         }
         .padding(20)
         .background(.white)
