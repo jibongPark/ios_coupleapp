@@ -28,11 +28,13 @@ public struct LoginVO: Equatable, Codable {
 
 public struct AuthVO: Equatable, Codable {
     public let userName: String
+    public let uid: String
     public let accessToken: String
     public let refreshToken: String
     
-    public init(name: String, access: String, refresh: String) {
+    public init(name: String, uid: String, access: String, refresh: String) {
         self.userName = name
+        self.uid = uid
         self.accessToken = access
         self.refreshToken = refresh
     }

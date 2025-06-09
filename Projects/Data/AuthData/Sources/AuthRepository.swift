@@ -73,6 +73,7 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
                         let refreshToken = response.data!.refreshToken
                         
                         authManager.updateUserName(userName)
+                        authManager.updateUid(uid)
                         authManager.updateToken(access: accessToken, refresh: refreshToken)
                         
                         ConfigManager.shared.set("userName", userName)

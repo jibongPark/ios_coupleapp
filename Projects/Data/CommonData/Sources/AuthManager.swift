@@ -17,6 +17,7 @@ public final class AuthManager {
     private let tag = "com.bongbong.auth.login".data(using: .utf8)!
     private let userService = "com.bongbong.userinfo"
     private let nameAccount = "userName"
+    private let uidAccount = "uid"
     private let accessAccount = "accessToken"
     private let refreshAccount = "refreshToken"
     
@@ -26,6 +27,7 @@ public final class AuthManager {
     public static let shared = AuthManager()
     
     public private(set) var userName: String?
+    public private(set) var uid: String?
     public private(set) var accessToken: String?
     public private(set) var refreshToken: String?
     
@@ -35,6 +37,11 @@ public final class AuthManager {
             if let name = name {
                 userName = name
                 ConfigManager.shared.set("didLogin", true)
+            }
+            
+            let uid = try keyChainHelper.read(service: userService, account: uidAccount)
+            if let uid = uid {
+                self.uid = uid
             }
             
             let accessToken = try keyChainHelper.read(service: userService, account: accessAccount)
@@ -62,6 +69,16 @@ public final class AuthManager {
         }
     }
     
+    public func updateUid(_ uid: String) {
+        self.uid = uid
+        
+        do {
+            try KeychainHelper.standard.save(uid, service: userService, account: uidAccount)
+        } catch {
+            
+        }
+    }
+    
     public func updateToken(access: String, refresh: String) {
         self.accessToken = access
         self.refreshToken = refresh
@@ -78,8 +95,10 @@ public final class AuthManager {
         userName = nil
         accessToken = nil
         refreshToken = nil
+        uid = nil
         
         KeychainHelper.standard.delete(service: userService, account: nameAccount)
+        KeychainHelper.standard.delete(service: userService, account: uidAccount)
         KeychainHelper.standard.delete(service: userService, account: accessAccount)
         KeychainHelper.standard.delete(service: userService, account: refreshAccount)
         
