@@ -27,77 +27,73 @@ public final class FriendRepositoryImpl: FriendRepository {
             
             let result = await localProvider.request(.friends)
             
-            switch result {
-            case .success(let resp):
-                do {
-                    let apiResp: APIResponse<[FriendDTO]> = try resp.mapAPIResponse([FriendDTO].self)
-                    let friends = apiResp.data?.compactMap { FriendVO(id: $0.id, name: $0.name)} ?? []
-                    
-                    await send(DataResult(friends))
-                } catch {
-                    
-                }
-            case .failure(let error): break
+            let returnResult: DataResult<[FriendVO]> = DataResult(result, dtoType: [FriendDTO].self) { dtos in
+                dtos.compactMap { FriendVO(id: $0.id, name: $0.name) }
             }
+            
+            await send(returnResult)
         }
     }
     
-    public func createRequest() -> Effect<DataResult<FriendInviteVO>> {
+    public func friendRequest(_ uid: String) -> Effect<DataResult<FriendRequestVO>> {
         let localProvider = provider
         
         return Effect.run { send in
-            let result = await localProvider.request(.createInvite)
+            let moyaResult = await localProvider.request(.request(uid: uid))
             
-            switch result {
-            case .success(let resp):
-                do {
-                    let apiResp: APIResponse<FriendInviteDTO> = try resp.mapAPIResponse(FriendInviteDTO.self)
-                    let inviteDto = apiResp.data!
-                    
-                    await send(DataResult(FriendInviteVO(url: inviteDto.intiteUrl, expiresAt: inviteDto.expiresAt)))
-                } catch {
-                    await send(DataResult(nil, error: error))
-                }
-                
-            case .failure(let error):
-                await send(DataResult(nil, error: error))
+            let dataResult: DataResult<FriendRequestVO> = DataResult(moyaResult, dtoType: FriendRequestDTO.self) { dto in
+                FriendRequestVO(senderId: dto.senderId,
+                                senderName: dto.senderName,
+                                receiverId: dto.receiverId,
+                                receiverName: dto.receiverName)
             }
+            
+            await send(dataResult)
         }
     }
     
-    public func friendRequest(_ token: String) -> Effect<DataResult<String>> {
+    public func acceptRequest(_ id: String) -> Effect<DataResult<FriendVO>> {
         let localProvider = provider
         
         return Effect.run { send in
-        let result = await localProvider.request(.request(token: token))
+            let moyaResult = await localProvider.request(.acceptFriend(friendId: id))
             
-            switch result {
-            case .success(let resp):
-                do {
-                    let apiResp: APIResponse<String> = try resp.mapAPIResponse(String.self)
-                    let message = apiResp.data!
-                    
-                    await send(DataResult(apiResp.message))
-                } catch {
-                    
-                }
-                
-            case .failure(let error):
-                await send(DataResult(nil, error: error))
+            let dataResult: DataResult<FriendVO> = DataResult(moyaResult, dtoType: FriendDTO.self) { dto in
+                FriendVO(id: dto.id, name: dto.name)
             }
+            
+            await send(dataResult)
         }
     }
     
-    public func acceptRequest(_ id: String) {
+    public func declineRequest(_ id: String) -> Effect<DataResult<FriendVO>> {
+        let localProvider = provider
         
+        return Effect.run { send in
+//            let moyaResult = await localProvider.request(.declineFriend(friendId: id))
+//
+//            let dataResult: DataResult<FriendVO> = DataResult(moyaResult, dtoType: FriendDTO.self) { dto in
+//                FriendVO(id: dto.id, name: dto.name)
+//            }
+            
+            let dataResult: DataResult<FriendVO> = DataResult(message: "")
+            
+            await send(dataResult)
+        }
     }
     
-    public func declineRequest(_ id: String) {
+    public func deleteFriend(_ id: String) -> Effect<DataResult<FriendVO>> {
+        let localProvider = provider
         
-    }
-    
-    public func deleteFriend(_ id: String) {
-        
+        return Effect.run { send in
+            let moyaResult = await localProvider.request(.deleteFriend(friendId: id))
+            
+            let dataResult: DataResult<FriendVO> = DataResult(moyaResult, dtoType: FriendDTO.self) { dto in
+                FriendVO(id: dto.id, name: dto.name)
+            }
+            
+            await send(dataResult)
+        }
     }
 }
 

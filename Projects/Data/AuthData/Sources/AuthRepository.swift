@@ -49,49 +49,27 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
         
         return Effect.run { [self] send async in
             
-            let result: Result<Response, MoyaError> = await withCheckedContinuation { continuation in
-                provider.request(.login(type: user.type, jwt: user.token, name: user.name)) { moyaResult in
-                    switch moyaResult {
-                    case .success(let response):
-                        continuation.resume(returning: .success(response))
-                    case .failure(let moyaError):
-                        continuation.resume(returning: .failure(moyaError))
-                    }
-                }
+            let result = await provider.request(.login(type: user.type, jwt: user.token, name: user.name))
+            
+            let returnResult: DataResult<String> = DataResult(result, dtoType: AuthVO.self) { dto in
+                
+                let userName = dto.userName
+                let uid = dto.uid
+                let accessToken = dto.accessToken
+                let refreshToken = dto.refreshToken
+                
+                authManager.updateUserName(userName)
+                authManager.updateUid(uid)
+                authManager.updateToken(access: accessToken, refresh: refreshToken)
+                
+                ConfigManager.shared.set("userName", userName)
+                ConfigManager.shared.set("uid", uid)
+                ConfigManager.shared.set("didLogin", true)
+                
+                return dto.userName
             }
             
-            do {
-                switch result {
-                case .success(let resp):
-                    let response: APIResponse<AuthVO> = try resp.mapAPIResponse(AuthVO.self)
-                    
-                    if response.success {
-                        
-                        let userName = response.data!.userName
-                        let uid = response.data!.uid
-                        let accessToken = response.data!.accessToken
-                        let refreshToken = response.data!.refreshToken
-                        
-                        authManager.updateUserName(userName)
-                        authManager.updateUid(uid)
-                        authManager.updateToken(access: accessToken, refresh: refreshToken)
-                        
-                        ConfigManager.shared.set("userName", userName)
-                        ConfigManager.shared.set("uid", uid)
-                        ConfigManager.shared.set("didLogin", true)
-                        
-                        await send(DataResult(userName))
-                        
-                    } else {
-                        
-                    }
-                case .failure(let error):
-                    await send(DataResult(error: AuthError.networkFailed))
-                    print(error)
-                }
-            } catch {
-                print(error)
-            }
+            await send(returnResult)
         }
     }
     

@@ -44,8 +44,14 @@ public extension Response {
     func mapAPIData<Payload: Decodable>(
         _ payloadType: Payload.Type,
         using decoder: JSONDecoder = JSONDecoder()
-    ) throws -> (payload: Payload?, message: String?) {
-        let wrapper = try mapAPIResponse(payloadType, using: decoder)
-        return (wrapper.data, wrapper.message)
+    ) -> (isSuccess: Bool, payload: Payload?, message: String) {
+        
+        do {
+            let wrapper = try mapAPIResponse(payloadType, using: decoder)
+            return (wrapper.success, wrapper.data, wrapper.message ?? "빈 메시지")
+        } catch {
+            print(error)
+            return (false, nil, "서버와의 통신에 에러가 발생했습니다.")
+        }
     }
 }

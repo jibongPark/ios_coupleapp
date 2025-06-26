@@ -12,7 +12,7 @@ import Foundation
 enum FriendAPI {
     case friends
     case createInvite
-    case request(token: String)
+    case request(uid: String)
     case acceptFriend(friendId: String)
     case deleteFriend(friendId: String)
 }
@@ -39,7 +39,7 @@ extension FriendAPI: TargetType {
             return "/friends"
         case .createInvite:
             return "/friend/createInvite"
-        case .request(token: let token):
+        case .request(uid: let token):
             return "/friend/request/\(token)"
         case .acceptFriend(friendId: let friendId):
             return "/friend/accept/\(friendId)"
@@ -54,7 +54,7 @@ extension FriendAPI: TargetType {
             return .get
         case .createInvite:
             return .post
-        case .request(token: let token):
+        case .request(uid: let token):
             return .post
         case .acceptFriend(friendId: let friendId):
             return .post

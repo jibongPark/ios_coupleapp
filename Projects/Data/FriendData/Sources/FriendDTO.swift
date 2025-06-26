@@ -14,6 +14,13 @@ struct FriendDTO: Codable {
     var name: String
 }
 
+struct FriendRequestDTO: Codable {
+    var senderId: String
+    var senderName: String
+    var receiverId: String
+    var receiverName: String
+}
+
 struct FriendInviteDTO: Codable {
     var intiteUrl: String
     var expiresAt: Date
