@@ -116,6 +116,7 @@ struct AppView: View {
                     }
                 }
             }
+            .tint(.mbPrimaryTerracotta)
         }
         .onAppear() {
             store.send(.onAppear)
