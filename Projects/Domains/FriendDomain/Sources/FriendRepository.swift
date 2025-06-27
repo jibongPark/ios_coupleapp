@@ -11,9 +11,10 @@ import Core
 
 public protocol FriendRepository {
     func fetch() -> Effect<DataResult<[FriendVO]>>
-    func createRequest() -> Effect<DataResult<FriendInviteVO>>
-    func friendRequest(_ token: String) -> Effect<DataResult<String>>
-    func acceptRequest(_ id: String)
-    func declineRequest(_ id: String)
-    func deleteFriend(_ id: String)
+    func fetchRequests() -> Effect<DataResult<[FriendRequestVO]>>
+    
+    func friendRequest(_ uid: String) -> Effect<DataResult<FriendRequestVO>>
+    func acceptFriend(_ id: String) -> Effect<DataResult<FriendVO>>
+    func rejectFriend(_ id: String) -> Effect<DataResult<FriendVO>>
+    func deleteFriend(_ id: String) -> Effect<DataResult<FriendVO>>
 }

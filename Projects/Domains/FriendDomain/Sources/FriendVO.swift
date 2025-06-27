@@ -18,6 +18,20 @@ public struct FriendVO: Equatable {
     }
 }
 
+public struct FriendRequestVO: Equatable {
+    public let senderId: String
+    public let senderName: String
+    public let receiverId: String
+    public let receiverName: String
+    
+    public init(senderId: String, senderName: String, receiverId: String, receiverName: String) {
+        self.senderId = senderId
+        self.senderName = senderName
+        self.receiverId = receiverId
+        self.receiverName = receiverName
+    }
+}
+
 public struct FriendInviteVO: Equatable {
     public let url: String
     public let expiresAt: Date

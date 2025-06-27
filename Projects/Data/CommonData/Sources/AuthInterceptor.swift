@@ -53,7 +53,7 @@ public final class AuthInterceptor: RequestInterceptor {
                         print("Retry-토큰 재발급 성공")
                         completion(.retry)
                     } catch {
-                        
+                        print(error)
                     }
                 case .failure(let error):
                     authManager.clear()
@@ -61,6 +61,8 @@ public final class AuthInterceptor: RequestInterceptor {
                 }
             }
         }
+        
+        completion(.doNotRetryWithError(error))
     }
 }
 

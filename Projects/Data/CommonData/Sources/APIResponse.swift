@@ -11,4 +11,3 @@ public struct APIResponse<Payload: Decodable>: Decodable {
     public let message: String?
     public let data: Payload?
 }
-

@@ -6,16 +6,22 @@
 //  Copyright © 2025 JIBONG PARK. All rights reserved.
 //
 
+import Moya
+
 public struct DataResult<Payload> {
+    public let isSuccess: Bool
     public let data: Payload?
-    public let error: Error?
+    public let message: String
     
-    public init(_ data: Payload? = nil, error: Error? = nil) {
+    public init(isSuccess: Bool, data: Payload? = nil, message: String? = nil) {
+        self.isSuccess = isSuccess
         self.data = data
-        self.error = error
+        self.message = message ?? ""
     }
     
-    public var isSuccess: Bool {
-        error == nil
+    public init(message: String) {
+        self.isSuccess = false
+        self.data = nil
+        self.message = message
     }
 }
