@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import Core
 
 
 public struct ScheduleView : View {
@@ -29,12 +30,15 @@ public struct ScheduleView : View {
             DatePicker("종료일", selection: $store.endDate, in: store.startDate..., displayedComponents: [.date, .hourAndMinute])
             
             TextEditor(text: $store.content)
+                .scrollContentBackground(.hidden)
+                .inputStyle()
                 .overlay(alignment: .topLeading) {
                     Text("설명을 입력하세요.")
                         .foregroundStyle(store.content.isEmpty ? .gray.opacity(0.5) : .clear)
-                        .padding(5)
+                        .padding(12)
                 }
         }
+        .setBackgroundColor()
         .padding(5)
         .toolbar {
             
@@ -48,6 +52,7 @@ public struct ScheduleView : View {
                 }
             }
         }
+        .setBackgroundColor()
     }
 }
 

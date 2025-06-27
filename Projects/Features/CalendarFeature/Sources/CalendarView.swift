@@ -41,6 +41,7 @@ struct CalendarView: View {
                         VStack(spacing: 0) {
                             Text(store.selectedMonth.formattedCalendarMonthDate)
                                 .font(.title.bold())
+                                .setInputColor()
                                 .onTapGesture() {
                                     store.send(.didTapMonth)
                                 }
@@ -121,6 +122,7 @@ struct CalendarView: View {
                     .padding(.bottom, 10)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
+            .setBackgroundColor()
             .navigationDestination(item: $store.scope(state: \.destination?.diaryView, action: \.destination.diaryView)) { store in
                 DiaryView(store: store)
             }
@@ -310,7 +312,7 @@ struct CalendarView: View {
                                             DispatchQueue.main.async {
                                                 scrollOffset = -proxy.frame(in: .named("scroll")).origin.y
                                             }
-                                return .mbSystemBackground
+                                return .mbBackgroundBeige
                             })
                         }
                         .coordinateSpace(name: "scroll")
@@ -359,7 +361,7 @@ struct CalendarView: View {
                                 }
                         )
                     }
-                    .background(Color.mbSystemBackground)
+                    .background(Color.mbBackgroundBeige)
                     
                 }
                 .onAppear() {
