@@ -35,6 +35,21 @@ public final class FriendRepositoryImpl: FriendRepository {
         }
     }
     
+    public func fetchRequests() -> Effect<DataResult<[FriendRequestVO]>> {
+        let localProvider = provider
+        
+        return Effect.run { send in
+            
+            let result = await localProvider.request(.friendRequests)
+            
+            let returnResult: DataResult<[FriendRequestVO]> = DataResult(result, dtoType: [FriendRequestDTO].self) { dtos in
+                dtos.compactMap { FriendRequestVO(senderId: $0.senderId, senderName: $0.senderName, receiverId: $0.receiverId, receiverName: $0.receiverName) }
+            }
+            
+            await send(returnResult)
+        }
+    }
+    
     public func friendRequest(_ uid: String) -> Effect<DataResult<FriendRequestVO>> {
         let localProvider = provider
         
@@ -52,7 +67,7 @@ public final class FriendRepositoryImpl: FriendRepository {
         }
     }
     
-    public func acceptRequest(_ id: String) -> Effect<DataResult<FriendVO>> {
+    public func acceptFriend(_ id: String) -> Effect<DataResult<FriendVO>> {
         let localProvider = provider
         
         return Effect.run { send in
@@ -66,17 +81,15 @@ public final class FriendRepositoryImpl: FriendRepository {
         }
     }
     
-    public func declineRequest(_ id: String) -> Effect<DataResult<FriendVO>> {
+    public func rejectFriend(_ id: String) -> Effect<DataResult<FriendVO>> {
         let localProvider = provider
         
         return Effect.run { send in
-//            let moyaResult = await localProvider.request(.declineFriend(friendId: id))
-//
-//            let dataResult: DataResult<FriendVO> = DataResult(moyaResult, dtoType: FriendDTO.self) { dto in
-//                FriendVO(id: dto.id, name: dto.name)
-//            }
-            
-            let dataResult: DataResult<FriendVO> = DataResult(message: "")
+            let moyaResult = await localProvider.request(.deleteFriend(friendId: id))
+
+            let dataResult: DataResult<FriendVO> = DataResult(moyaResult, dtoType: FriendDTO.self) { dto in
+                FriendVO(id: dto.id, name: dto.name)
+            }
             
             await send(dataResult)
         }

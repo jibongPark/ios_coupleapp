@@ -11,12 +11,14 @@ import MapFeature
 import CalendarFeature
 import WidgetFeature
 import LoginFeature
+import FriendFeature
 
 struct AppView: View {
     
     @Dependency(\.mapFeature) var mapFeature
     @Dependency(\.calendarFeature) var calendarFeature
     @Dependency(\.widgetFeature) var widgetFeature
+    @Dependency(\.friendFeature) var friendFeature
     
     let store: StoreOf<AppReducer>
     
@@ -109,6 +111,8 @@ struct AppView: View {
                     switch destination {
                     case .widget:
                         AnyView(widgetFeature.makeView())
+                    case .friend:
+                        AnyView(friendFeature.makeView())
                     }
                 }
             }
@@ -155,7 +159,7 @@ struct sideBarMenu: View {
             .foregroundStyle(.black)
             
             Button(action: {
-                
+                store.send(.destinationChanged(.friend))
             }, label: {
                 Image(systemName: "person.2")
                 Text("친구")
@@ -282,10 +286,12 @@ struct AppReducer {
 extension AppReducer {
     public enum Destination: Equatable, Identifiable {
         case widget
+        case friend
         
         var id: String {
             switch self {
             case .widget: return "widget"
+            case .friend: return "friend"
             }
         }
     }

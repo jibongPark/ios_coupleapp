@@ -19,10 +19,10 @@ public struct FriendVO: Equatable {
 }
 
 public struct FriendRequestVO: Equatable {
-    var senderId: String
-    var senderName: String
-    var receiverId: String
-    var receiverName: String
+    public let senderId: String
+    public let senderName: String
+    public let receiverId: String
+    public let receiverName: String
     
     public init(senderId: String, senderName: String, receiverId: String, receiverName: String) {
         self.senderId = senderId

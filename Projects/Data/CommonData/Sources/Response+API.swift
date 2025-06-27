@@ -50,7 +50,7 @@ public extension Response {
             let wrapper = try mapAPIResponse(payloadType, using: decoder)
             return (wrapper.success, wrapper.data, wrapper.message ?? "빈 메시지")
         } catch {
-            print(error)
+            print("통신 실패: \(Payload.Type.self), \(error)")
             return (false, nil, "서버와의 통신에 에러가 발생했습니다.")
         }
     }

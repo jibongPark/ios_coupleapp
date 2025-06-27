@@ -27,10 +27,12 @@ struct FriendReducer {
     public struct State: Equatable {
         @Presents var alert: AlertState<Action.Alert>?
         
+        var userId: String = ""
+        
         var friends: [FriendVO] = []
         var requests: [FriendRequestVO] = []
         
-        var friendId: String = "6846a69a16ed8c3129b1d5e7"
+        var friendId: String = ""
     }
     
     public enum Action: BindableAction, Equatable {
@@ -40,13 +42,25 @@ struct FriendReducer {
         case fetchFriends
         case didFetchFriends([FriendVO])
         
+        case fetchFriendRequests
+        case didFetchFriendRequests([FriendRequestVO])
+        
         case didTapRequestButton(String)
         case didSuccessRequest(FriendRequestVO)
+        
+        case deleteFriend(String)
+        case didDeleteFriend(FriendVO)
+        case acceptFriend(String)
+        case didAcceptFriend(FriendVO)
+        case rejectFriend(String)
+        case didRejectFriend(FriendVO)
         
         case copyMyId
         
         case showAlert(String)
         case dismissAlert
+        
+        case onAppear
         
         @CasePathable
         enum Alert: Equatable {
@@ -85,6 +99,18 @@ struct FriendReducer {
                 state.friends = friends
                 return .none
                 
+            case .fetchFriendRequests:
+                return friendRepository.fetchRequests().map { @Sendable resp in
+                    if resp.isSuccess {
+                        return .didFetchFriendRequests(resp.data!)
+                    }
+                    return .showAlert(resp.message)
+                }
+                
+            case .didFetchFriendRequests(let requests):
+                state.requests = requests
+                return .none
+                
             case .didTapRequestButton(let friendId):
                 
                 if !state.friendId.isEmpty {
@@ -102,6 +128,50 @@ struct FriendReducer {
                 state.requests.append(vo)
                 return .send(.showAlert("친구 신청이 완료되었습니다."))
                 
+            case .deleteFriend(let id):
+                return friendRepository.deleteFriend(id).map { @Sendable resp in
+                    if resp.isSuccess {
+                        if let friend = resp.data {
+                            return .didDeleteFriend(friend)
+                        }
+                    }
+                    
+                    return .showAlert(resp.message)
+                }
+                
+            case .didDeleteFriend(let friend):
+                state.friends = state.friends.filter { $0.id != friend.id }
+                state.requests = state.requests.filter { $0.senderId != friend.id && $0.receiverId != friend.id }
+                return .none
+                
+            case .acceptFriend(let id):
+                return friendRepository.acceptFriend(id).map { @Sendable resp in
+                    if resp.isSuccess {
+                        if let friend = resp.data {
+                            return .didAcceptFriend(friend)
+                        }
+                    }
+                    return .showAlert(resp.message)
+                }
+                
+            case .didAcceptFriend(let friend):
+                state.requests = state.requests.filter { $0.senderId != friend.id }
+                state.friends.append(friend)
+                return .none
+                
+            case .rejectFriend(let id):
+                return friendRepository.rejectFriend(id).map { @Sendable resp in
+                    if resp.isSuccess {
+                        if let friend = resp.data {
+                            return .didRejectFriend(friend)
+                        }
+                    }
+                    return .showAlert(resp.message)
+                }
+                
+            case .didRejectFriend(let friend):
+                state.requests = state.requests.filter { $0.senderId != friend.id }
+                return .none
             case .copyMyId:
                 UIPasteboard.general.string = authManager.uid
                 return .send(.showAlert("id가 복사되었습니다."))
@@ -122,6 +192,13 @@ struct FriendReducer {
                 state.alert = nil
                 return .none
                 
+            case .onAppear:
+                state.userId = authManager.uid ?? ""
+                
+                return .merge([
+                    .send(.fetchFriends),
+                    .send(.fetchFriendRequests)
+                ])
             }
         }
         .ifLet(\.$alert, action: \.alert)

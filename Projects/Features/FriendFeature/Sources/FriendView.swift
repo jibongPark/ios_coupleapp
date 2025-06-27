@@ -10,6 +10,7 @@ import ComposableArchitecture
 import FriendFeatureInterface
 import SwiftUI
 import Core
+import FriendDomain
 
 
 
@@ -29,18 +30,15 @@ struct FriendView: View {
                     HStack(spacing: 0) {
                         
                         Text("uid : ")
-                        Button(action: {
+                        
+                        ImageButton("document.on.document.fill") {
                             store.send(.copyMyId)
-                        }, label: {
-                            Image(systemName: "document.on.document.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundStyle(Color.mbPrimaryTerracotta)
-                                .frame(width: 24, height: 24)
-                                .padding(10)
-                        })
+                        }
+                        .frame(width: 24, height: 24)
+                        .padding(10)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                         .contentShape(Rectangle())
+                        
                         
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -69,8 +67,14 @@ struct FriendView: View {
                     
                     
                     LazyVStack {
+                        
+                        ForEach(store.requests.indices, id: \.self) { index in
+                            let request = store.requests[index]
+                            FriendRequestView(store: store, isMyRequest: request.senderId == store.userId, friendRequest: request)
+                        }
+                        
                         ForEach(store.friends.indices, id: \.self) { index in
-                            Text(store.friends[index].name)
+                            FriendCellView(store: store, friend: store.friends[index])
                         }
                     }
                 }
@@ -84,17 +88,93 @@ struct FriendView: View {
                     Text("친구")
                         .foregroundStyle(Color.mbTextBlack)
                 }
-                
-                ToolbarItem(placement: .topBarLeading) {
-                    Button(action: {
-                        
-                    }, label: {
-                        Image(systemName: "arrow.backward")
-                            .foregroundStyle(Color.mbBackwardColor)
-                    })
-                }
             }
             
+        }
+        .onAppear() {
+            store.send(.onAppear)
+        }
+    }
+    
+    private struct FriendRequestView: View {
+        var store: StoreOf<FriendReducer>
+        let isMyRequest: Bool
+        let friendRequest: FriendRequestVO
+        
+        var body: some View {
+            
+            GeometryReader { geometry in
+                HStack {
+                    if isMyRequest {
+                        Text(friendRequest.receiverName)
+                        
+                        Spacer()
+                        
+                        HStack {
+                            Button(action: {
+                                store.send(.deleteFriend(friendRequest.receiverId))
+                            }, label: {
+                                Image(systemName: "x.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .foregroundStyle(Color.mbPrimaryTerracotta)
+                                    .frame(width: 24, height: 24)
+                                    .padding(10)
+                            })
+                        }
+                    } else {
+                        Text(friendRequest.senderName)
+                            .background(Color.mbInputBackground)
+                        
+                        Spacer()
+                        
+                        
+                        ImageButton("o.circle.fill") {
+                            store.send(.acceptFriend(friendRequest.senderId))
+                        }
+                        .frame(width: 24, height: 24)
+                        .padding(10)
+                        Button(action: {
+                            store.send(.acceptFriend(friendRequest.senderId))
+                        }, label: {
+                            Image(systemName: "o.circle.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .foregroundStyle(Color.mbPrimaryTerracotta)
+                                .frame(width: 24, height: 24)
+                                .padding(10)
+                        })
+                        
+                        Button(action: {
+                            store.send(.rejectFriend(friendRequest.senderId))
+                        }, label: {
+                            Image(systemName: "x.circle.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .foregroundStyle(Color.mbPrimaryTerracotta)
+                                .frame(width: 24, height: 24)
+                                .padding(10)
+                        })
+                        
+                    }
+                    
+                }
+                .padding(5)
+            }
+        }
+    }
+    
+    private struct FriendCellView: View {
+        var store: StoreOf<FriendReducer>
+        let friend: FriendVO
+        
+        var body: some View {
+            HStack {
+                Text(friend.name)
+                    .background(Color.mbInputBackground)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(5)
         }
     }
 }
