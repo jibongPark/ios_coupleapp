@@ -310,7 +310,7 @@ struct CalendarView: View {
                                             DispatchQueue.main.async {
                                                 scrollOffset = -proxy.frame(in: .named("scroll")).origin.y
                                             }
-                                return .white
+                                return .mbSystemBackground
                             })
                         }
                         .coordinateSpace(name: "scroll")
@@ -359,7 +359,7 @@ struct CalendarView: View {
                                 }
                         )
                     }
-                    .background(.white)
+                    .background(Color.mbSystemBackground)
                     
                 }
                 .onAppear() {
@@ -573,7 +573,7 @@ extension Date {
         } else if weekday == 7 {
             return Color.blue
         } else {
-            return Color.black
+            return Color.mbTextBlack
         }
     }
 }
