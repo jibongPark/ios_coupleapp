@@ -22,6 +22,12 @@ public extension Color {
         )
     }
     
+    static var mbSystemBackground: Color {
+        Color(
+            UIColor.systemBackground
+        )
+    }
+    
     static var mbBackwardColor: Color {
         Color (
             UIColor { trait in
@@ -86,26 +92,6 @@ public extension Color {
             : UIColor(hex: "A0A0A0")
         }
     )
-    
-    
-    
-    // MemoryBox 주 강조색 (Primary Accent)
-    static let mbPrimaryCoral       = Color(hex: "FF6F61")
-    static let mbPrimaryRose        = Color(hex: "EFA4A8")
-    // MemoryBox 보조 강조색 (Secondary Accent)
-    static let mbSecondaryMint      = Color(hex: "A6E1D7")
-    static let mbSecondaryLavendar  = Color(hex: "D6C3E1")
-    
-    static let mbAccentWarmMustard  = Color(hex: "D9A541")
-    
-    
-    // MemoryBox 캘린더 ‘날짜 선택(Active)’ 색상
-    static let mbCalendarSelected   = Color(hex: "F8C6B7")
-    // MemoryBox 텍스트 입력 필드 테두리 색상
-    static let mbTextFieldBorder    = Color(hex: "D6C3E1").opacity(0.8)
-    
-    
-    
 }
 
 public extension Color {
