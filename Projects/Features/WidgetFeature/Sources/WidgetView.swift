@@ -33,6 +33,7 @@ struct WidgetView: View {
                                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                                 }
                             }
+                            .setBackgroundColor()
                         }
                     }
                 }
@@ -70,6 +71,7 @@ struct WidgetView: View {
                 }
             }
         }
+        .setBackgroundColor()
         .fullScreenCover(item: $store.scope(state: \.destination?.addDdayView, action: \.destination.addDdayView)) { store in
             AddDDayView(store: store)
         }
