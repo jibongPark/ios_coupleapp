@@ -18,6 +18,8 @@ struct FriendView: View {
     
     @Bindable var store: StoreOf<FriendReducer>
     
+    @State var test: String = ""
+    
     init(store: StoreOf<FriendReducer>) {
         self.store = store
     }
@@ -29,39 +31,38 @@ struct FriendView: View {
                     
                     HStack(spacing: 0) {
                         
-                        Text("uid : ")
+                        
+                        Text("uid : \(store.userId)")
+                            .inputStyle()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Spacer(minLength: 0)
                         
                         ImageButton("document.on.document.fill") {
                             store.send(.copyMyId)
                         }
                         .frame(width: 24, height: 24)
                         .padding(10)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
                         .contentShape(Rectangle())
                         
-                        
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                     
                     HStack(spacing: 0) {
+                        
                         TextField(text: $store.friendId, label: {
                             Text("초대코드를 입력해주세요.")
                         })
+                        .inputStyle()
                         
                         Spacer(minLength: 0)
                         
-                        Button(action: {
+                        ImageButton("person.fill.badge.plus") {
                             store.send(.didTapRequestButton(store.friendId))
-                        }, label: {
-                            Image(systemName: "person.fill.badge.plus")
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundStyle(Color.mbPrimaryRose)
-                                .frame(width: 24, height: 24)
-                                .padding(10)
-                        })
-                        .frame(alignment: .trailing)
+                        }
+                        .frame(width: 24, height: 24)
+                        .padding(10)
                         .contentShape(Rectangle())
+                        
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -77,6 +78,7 @@ struct FriendView: View {
                             FriendCellView(store: store, friend: store.friends[index])
                         }
                     }
+                    .backgroundStyle()
                 }
                 .padding([.leading, .trailing], 10)
             }

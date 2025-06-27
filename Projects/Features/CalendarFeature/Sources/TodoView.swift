@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import Core
 
 
 struct TodoView : View {
@@ -32,15 +33,18 @@ struct TodoView : View {
                 }
                 
                 TextEditor(text: $store.content)
+                    .scrollContentBackground(.hidden)
+                    .inputStyle()
                     .overlay(alignment: .topLeading) {
                         Text("설명을 입력하세요.")
                             .foregroundStyle(store.content.isEmpty ? .gray.opacity(0.5) : .clear)
-                            .padding(5)
+                            .padding(12)
                     }
+                    
             }
             .padding(15)
         }
-        
+        .setBackgroundColor()
         .toolbar {
             
             ToolbarItem(placement: .principal) {

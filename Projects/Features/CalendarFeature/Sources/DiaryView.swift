@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import ComposableArchitecture
+import Core
 
 
 public struct DiaryView : View {
@@ -16,6 +17,8 @@ public struct DiaryView : View {
             Spacer()
             
             TextEditor(text: $store.content)
+                .scrollContentBackground(.hidden)
+                .inputStyle()
                 .overlay(alignment: .center) {
                     if(store.content.isEmpty) {
                         Text("내용을 입력해 주세요")
@@ -23,11 +26,13 @@ public struct DiaryView : View {
                     }
                 }
         }
+        .setBackgroundColor()
         .toolbar {
             
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 1) {
                     Text("일기")
+                        .setInputColor()
                     Text(store.date.formattedCalendarDayDate)
                 }
             }

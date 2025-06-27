@@ -73,7 +73,7 @@ struct AddDDayView: View {
                                 if store.title.isEmpty {
                                     Text("디데이 제목을 입력하세요.")
                                         .font(.title2.bold())
-                                        .foregroundStyle(.gray)
+                                        .foregroundStyle(Color.mbTextLightGray)
                                         .allowsHitTesting(false)
                                 }
                             }
@@ -87,7 +87,7 @@ struct AddDDayView: View {
                             
                             Text("처음 만난 날")
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .foregroundStyle(.gray)
+                                .setInputColor()
                             
                             Button(action: {
                                 store.send(.dateChangeButtonTapped)
@@ -95,14 +95,15 @@ struct AddDDayView: View {
                                 HStack {
                                     Text(store.startDate.formattedDateString)
                                         .frame(alignment: .trailing)
-                                        .foregroundStyle(.gray)
+//                                        .setInputColor()
                                     
                                     Image(systemName: store.destination != nil ? "chevron.up" : "chevron.down")
-                                        .foregroundStyle(.gray)
+//                                        .setInputColor()
                                     
                                     
                                 }
                             }
+                            .setInputColor()
                             .frame(maxWidth: .infinity)
                         }
                         .padding(5)
@@ -111,7 +112,7 @@ struct AddDDayView: View {
                             .background(.gray)
                         
                         Toggle("디데이 표시", isOn: $store.isShowDate)
-                            .foregroundStyle(.gray)
+                            .setInputColor()
                         
                         if store.isShowDate {
                             AlignmentView(alignment: store.dateAlignment) { alignment in
@@ -120,7 +121,7 @@ struct AddDDayView: View {
                         }
                         
                         Toggle("제목 표시", isOn: $store.isShowTitle)
-                            .foregroundStyle(.gray)
+                            .setInputColor()
                         
                         if store.isShowTitle {
                             AlignmentView(alignment: store.titleAlignment) { alignment in
@@ -134,8 +135,9 @@ struct AddDDayView: View {
                     .ignoresSafeArea(.all, edges:.top)
                     .padding(10)
                     .frame(height: geometry.size.height * (1-scale), alignment: .top)
-                    .background(Color.black.opacity(0.9))
+                    .setBackgroundColor()
                 }
+                .setBackgroundColor()
             }
             .toolbar {
                 Group {
@@ -144,7 +146,6 @@ struct AddDDayView: View {
                             store.send(.cancelButtonTapped)
                         }) {
                             Image(systemName: "xmark")
-                                .foregroundColor(.gray)
                         }
                     }
                     
@@ -152,7 +153,6 @@ struct AddDDayView: View {
                         Button("저장") {
                             store.send(.saveButtonTapped)
                         }
-                        .foregroundColor(.gray)
                     }
                 }
             }

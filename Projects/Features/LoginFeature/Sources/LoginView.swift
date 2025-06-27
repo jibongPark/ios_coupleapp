@@ -65,7 +65,7 @@ public struct LoginView: View {
             .frame(width: 183, height: 45)
         }
         .padding(15)
-        .background(.white)
+        .setBackgroundColor()
         .clipShape(.rect(cornerRadius:5))
         
     }
