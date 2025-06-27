@@ -34,6 +34,7 @@ private struct MapView: View {
                         }
                     }
                     .padding(10)
+                    .setBackgroundColor()
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
             } else {
@@ -41,6 +42,7 @@ private struct MapView: View {
                     .onAppear { store.send(.onApear) }
             }
         }
+        .setBackgroundColor()
         .fullScreenCover(
             item: $store.scope(state: \.addTrip, action: \.addTrip)
         ) { addTripStore in
