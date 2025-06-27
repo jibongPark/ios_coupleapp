@@ -60,7 +60,7 @@ struct AppView: View {
                             .imageScale(.large)
                             .padding(10)
                             .contentShape(Rectangle())
-                            .foregroundStyle(.black)
+                            .foregroundStyle(Color.mbPrimaryTerracotta)
                     })
                     .frame(maxWidth:.infinity, maxHeight: .infinity, alignment: .topLeading)
                     
@@ -139,12 +139,12 @@ struct sideBarMenu: View {
                     store.send(.loginButtonTapped)
                 }, label: {
                     Text("로그인")
-                        .foregroundStyle(.black)
+                        .foregroundStyle(Color.mbTextBlack)
                 })
                 .frame(maxWidth: .infinity)
             } else {
                 Text("\(store.login.name ?? "") 님 환영합니다.")
-                    .foregroundStyle(.black)
+                    .foregroundStyle(Color.mbTextBlack)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             
@@ -156,8 +156,9 @@ struct sideBarMenu: View {
             }, label: {
                 Image(systemName: "widget.small")
                 Text("위젯")
+                    
             })
-            .foregroundStyle(.black)
+            .foregroundStyle(Color.mbTextBlack)
             
             Button(action: {
                 store.send(.destinationChanged(.friend))
@@ -165,7 +166,7 @@ struct sideBarMenu: View {
                 Image(systemName: "person.2")
                 Text("친구")
             })
-            .foregroundStyle(.black)
+            .foregroundStyle(Color.mbTextBlack)
             
             Spacer()
             
@@ -180,7 +181,7 @@ struct sideBarMenu: View {
             }
         }
         .padding(20)
-        .background(.white)
+        .background(Color.mbBackgroundBeige)
     }
 }
 
