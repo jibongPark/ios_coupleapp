@@ -6,5 +6,6 @@ let project = Project.configure(
     product: .framework,
     dependencies: [
         .external(name: "ComposableArchitecture"),
+        .Core.core
     ]
 )
