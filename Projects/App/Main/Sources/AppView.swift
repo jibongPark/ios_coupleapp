@@ -161,13 +161,15 @@ struct sideBarMenu: View {
             })
             .foregroundStyle(Color.mbTextBlack)
             
-            Button(action: {
-                store.send(.destinationChanged(.friend))
-            }, label: {
-                Image(systemName: "person.2")
-                Text("친구")
-            })
-            .foregroundStyle(Color.mbTextBlack)
+            if store.login.name != nil {
+                Button(action: {
+                    store.send(.destinationChanged(.friend))
+                }, label: {
+                    Image(systemName: "person.2")
+                    Text("친구")
+                })
+                .foregroundStyle(Color.mbTextBlack)
+            }
             
             Spacer()
             
