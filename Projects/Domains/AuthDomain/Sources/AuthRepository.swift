@@ -16,4 +16,5 @@ public protocol AuthRepository: Sendable {
     
     func loginUser(_ user: LoginVO) -> Effect<DataResult<String>>
     func logoutUser()
+    func deleteUser() -> Effect<DataResult<String>>
 }
