@@ -20,7 +20,7 @@ struct AppView: View {
     @Dependency(\.widgetFeature) var widgetFeature
     @Dependency(\.friendFeature) var friendFeature
     
-    let store: StoreOf<AppReducer>
+    @Bindable var store: StoreOf<AppReducer>
     
     @State var sideBarWidth: CGFloat = 0
     @State var lastDragValue: CGFloat = 0
@@ -118,6 +118,7 @@ struct AppView: View {
             }
             .tint(.mbPrimaryTerracotta)
         }
+        .alert($store.scope(state: \.alert, action: \.alert))
         .onAppear() {
             store.send(.onAppear)
         }
@@ -171,13 +172,28 @@ struct sideBarMenu: View {
             Spacer()
             
             if store.login.name != nil {
-                Button(action: {
-                    store.send(.logout)
-                }, label: {
-                    Text("로그아웃")
-                        .font(.caption2)
-                })
-                .frame(maxWidth: .infinity, alignment: .trailing)
+                
+                HStack {
+                    
+                    Button(action: {
+                        store.send(.didTapDeleteUser)
+                    }, label: {
+                        Text("회원탈퇴")
+                            .font(.caption2)
+                    })
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Spacer()
+                    
+                    
+                    Button(action: {
+                        store.send(.logout)
+                    }, label: {
+                        Text("로그아웃")
+                            .font(.caption2)
+                    })
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                }
             }
         }
         .padding(20)
@@ -218,6 +234,9 @@ struct AppReducer {
     
     @ObservableState
     struct State: Equatable {
+        
+        @Presents var alert: AlertState<Action.Alert>?
+        
         var destination: Destination?
         var didShowLogin: Bool = false
         var login: LoginReducer.State = LoginReducer.State()
@@ -231,6 +250,17 @@ struct AppReducer {
         case login(LoginReducer.Action)
         case logout
         case onAppear
+        
+        case didTapDeleteUser
+        case deleteUser
+        
+        case alert(PresentationAction<Alert>)
+        case showAlert(_ message: String, _ buttons: [ButtonState<Action.Alert>]? = nil)
+        @CasePathable
+        public enum Alert: Equatable {
+            case dismiss
+            case deleteUser
+        }
     }
     
     var body: some ReducerOf<Self> {
@@ -270,11 +300,59 @@ struct AppReducer {
                 calendarFeature.sync()
                 return .none
                 
+            case .logout:
+                return .send(.login(.logout))
+                
+            case .didTapDeleteUser:
+                return .send(.showAlert("회원탈퇴를 하시겠습니까?\n 모든 데이터가 사라지며 복구 불가합니다.", [
+                    ButtonState(action: .deleteUser, label: {
+                        TextState("확인")
+                    })
+                ]))
+                
+            case .deleteUser:
+                return .send(.login(.deleteUser))
+                
+            case .login(.delegate(.didDeleteUser(let message))):
+                return .merge([
+                    .send(.logout),
+                    .send(.showAlert(message))
+                ])
+                
             case .login:
                 return .none
                 
-            case .logout:
-                return .send(.login(.logout))
+            case let .showAlert(message, buttons):
+                
+                var allButtons: [ButtonState<Action.Alert>] = [
+                    ButtonState(action: .dismiss, label: {
+                        TextState("취소")
+                    })
+                ]
+                
+                if let buttons = buttons {
+                    allButtons.append(contentsOf: buttons)
+                }
+                
+                state.alert = AlertState {
+                    TextState(message)
+                } actions: {
+                    for button in allButtons {
+                        button
+                    }
+                }
+                
+                return .none
+                
+            case .alert(.presented(.dismiss)):
+                state.alert = nil
+                return .none
+                
+            case .alert(.presented(.deleteUser)):
+                return .send(.deleteUser)
+                
+            case .alert:
+                return .none
                 
             case .onAppear:
                 return .send(.login(.loadUserData))
@@ -282,6 +360,7 @@ struct AppReducer {
             }
             
         }
+        .ifLet(\.$alert, action: \.alert)
     }
 }
 

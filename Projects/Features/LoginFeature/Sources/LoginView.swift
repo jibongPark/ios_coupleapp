@@ -47,7 +47,7 @@ public struct LoginView: View {
                     case .success(let authResults):
                         switch authResults.credential {
                         case let appleIDCredential as ASAuthorizationAppleIDCredential:
-                            let name = appleIDCredential.fullName?.givenName ?? ""
+                            let name = appleIDCredential.fullName?.givenName ?? "name"
                             
                             if let IdentityToken = String(data: appleIDCredential.identityToken!, encoding: .utf8) {
                                 store.send(.didSuccessLocalLogin(LoginVO(type: .apple, name: name, token: IdentityToken)))

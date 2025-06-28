@@ -13,6 +13,7 @@ import AuthDomain
 enum AuthAPI {
     case login(type: LoginType, jwt: String, name: String)
     case refresh(token: String)
+    case deleteUser
 }
 
 extension AuthAPI: TargetType {
@@ -35,11 +36,16 @@ extension AuthAPI: TargetType {
         switch self {
         case .login: return "/login"
         case .refresh: return "/refresh"
+        case .deleteUser: return "/deleteUser"
         }
     }
     
     var method: Moya.Method {
-        return .post
+        switch self {
+        case .deleteUser:
+            return .delete
+        default: return .post
+        }
     }
     
     var task: Task {
@@ -49,6 +55,9 @@ extension AuthAPI: TargetType {
             
         case let .refresh(jwt):
             return .requestParameters(parameters: ["refreshToken": jwt], encoding: JSONEncoding.default)
+            
+        case .deleteUser:
+            return .requestPlain
         }
     }
     

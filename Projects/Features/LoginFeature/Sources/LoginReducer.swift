@@ -42,9 +42,11 @@ public struct LoginReducer {
         case didFinishServerLogin(DataResult<String>)
         case logout
         case loadUserData
+        case deleteUser
         
         public enum Delegate: Equatable {
             case didSuccessLogin
+            case didDeleteUser(String)
         }
     }
     
@@ -95,6 +97,14 @@ public struct LoginReducer {
             case .loadUserData:
                 state.name = authRepository.userName
                 return .none
+                
+            case .deleteUser:
+                return authRepository.deleteUser().map { @Sendable resp in
+                    if resp.isSuccess {
+                        return .delegate(.didDeleteUser(resp.message))
+                    }
+                    return .delegate(.didDeleteUser(resp.message))
+                }
                 
             }
         }

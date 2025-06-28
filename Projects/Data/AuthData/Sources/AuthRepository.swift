@@ -23,9 +23,14 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
         
     }
     
+    @Dependency(\.authInterceptor) var authInterceptor
+    
+    private lazy var session = Session(interceptor: authInterceptor)
+
+    
     @Dependency(\.authManager) var authManager
     
-    private lazy var provider = MoyaProvider<AuthAPI>()
+    private lazy var provider = MoyaProvider<AuthAPI>(session: session)
     
     public var userName: String? {
         get {
@@ -122,6 +127,19 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
         authManager.clear()
     }
     
+    public func deleteUser() -> Effect<DataResult<String>> {
+        
+        return Effect.run { [self] send async in
+            
+            let result = await provider.request(.deleteUser)
+            
+            let returnResult: DataResult<String> = DataResult(result, dtoType: String.self) { dto in
+                return dto
+            }
+            
+            await send(returnResult)
+        }
+    }
 }
 
 private enum AuthRepoKey: DependencyKey {
