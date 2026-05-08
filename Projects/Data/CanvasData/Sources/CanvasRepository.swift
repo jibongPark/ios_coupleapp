@@ -104,15 +104,22 @@ public final class CanvasRepositoryImpl: CanvasRepository {
         let store = store
         return Effect.run { send in
             var snapshot = store.read()
-            snapshot.snapshots.removeAll { $0.sharedSpaceId == snapshotVO.sharedSpaceId && $0.canvasId == snapshotVO.canvasId }
-            snapshot.snapshots.append(CanvasSnapshotDTO(snapshotVO))
-            if let index = snapshot.canvases.firstIndex(where: { $0.sharedSpaceId == snapshotVO.sharedSpaceId }) {
-                snapshot.canvases[index].latestSnapshotVersion = snapshotVO.version
-                snapshot.canvases[index].latestSnapshotUrl = snapshotVO.imageUrl
-                snapshot.canvases[index].localSnapshotPath = snapshotVO.localPath
+            var storedSnapshot = snapshotVO
+            if let localPath = storedSnapshot.localPath {
+                let sourceURL = URL(fileURLWithPath: localPath)
+                if let appGroupURL = try? CanvasSnapshotFileStore.copyLatestSnapshot(from: sourceURL) {
+                    storedSnapshot = CanvasSnapshotVO(id: snapshotVO.id, canvasId: snapshotVO.canvasId, sharedSpaceId: storedSnapshot.sharedSpaceId, version: storedSnapshot.version, imageUrl: storedSnapshot.imageUrl, localPath: appGroupURL.path, width: snapshotVO.width, height: snapshotVO.height)
+                }
+            }
+            snapshot.snapshots.removeAll { $0.sharedSpaceId == storedSnapshot.sharedSpaceId && $0.canvasId == storedSnapshot.canvasId }
+            snapshot.snapshots.append(CanvasSnapshotDTO(storedSnapshot))
+            if let index = snapshot.canvases.firstIndex(where: { $0.sharedSpaceId == storedSnapshot.sharedSpaceId }) {
+                snapshot.canvases[index].latestSnapshotVersion = storedSnapshot.version
+                snapshot.canvases[index].latestSnapshotUrl = storedSnapshot.imageUrl
+                snapshot.canvases[index].localSnapshotPath = storedSnapshot.localPath
             }
             try? store.write(snapshot)
-            await send(DataResult(isSuccess: true, data: snapshotVO))
+            await send(DataResult(isSuccess: true, data: storedSnapshot))
         }
     }
 
