@@ -8,6 +8,7 @@
 
 import Moya
 import Foundation
+import Core
 
 enum RefreshAPI {
     case refresh(token: String)
@@ -20,13 +21,7 @@ extension RefreshAPI: TargetType {
     
     
     var baseURL: URL {
-        let url = Bundle.main.object(forInfoDictionaryKey:"BASE_URL")
-        
-        if let urlString = url as? String {
-            return URL(string: urlString)!
-        } else {
-            fatalError("URL String not found")
-        }
+        ConfigManager.shared.apiBaseURL ?? ConfigManager.fallbackBaseURL
     }
     
     var path: String {

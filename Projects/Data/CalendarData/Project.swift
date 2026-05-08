@@ -6,6 +6,7 @@ let project = Project.configure(
     product: .framework,
     dependencies: [
         .Modules.domain,
+        .Core.core,
         .Core.realmKit,
         .Data.Common.Data,
         .external(name: "RealmSwift"),

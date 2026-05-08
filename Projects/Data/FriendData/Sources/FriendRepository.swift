@@ -18,8 +18,17 @@ public final class FriendRepositoryImpl: FriendRepository {
     private lazy var session = Session(interceptor: authInterceptor)
 
     private lazy var provider = MoyaProvider<FriendAPI>(session: session)
+
+    private func unavailableBaseURLResult<T>() -> Effect<DataResult<T>> {
+        Effect.run { send in
+            await send(DataResult(message: ConfigManager.missingAPIBaseURLMessage))
+        }
+    }
     
     public func fetch() -> Effect<DataResult<[FriendVO]>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
         
         let localProvider = provider
         
@@ -36,6 +45,10 @@ public final class FriendRepositoryImpl: FriendRepository {
     }
     
     public func fetchRequests() -> Effect<DataResult<[FriendRequestVO]>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
         let localProvider = provider
         
         return Effect.run { send in
@@ -51,6 +64,10 @@ public final class FriendRepositoryImpl: FriendRepository {
     }
     
     public func friendRequest(_ uid: String) -> Effect<DataResult<FriendRequestVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
         let localProvider = provider
         
         return Effect.run { send in
@@ -68,6 +85,10 @@ public final class FriendRepositoryImpl: FriendRepository {
     }
     
     public func acceptFriend(_ id: String) -> Effect<DataResult<FriendVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
         let localProvider = provider
         
         return Effect.run { send in
@@ -82,6 +103,10 @@ public final class FriendRepositoryImpl: FriendRepository {
     }
     
     public func rejectFriend(_ id: String) -> Effect<DataResult<FriendVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
         let localProvider = provider
         
         return Effect.run { send in
@@ -96,6 +121,10 @@ public final class FriendRepositoryImpl: FriendRepository {
     }
     
     public func deleteFriend(_ id: String) -> Effect<DataResult<FriendVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
         let localProvider = provider
         
         return Effect.run { send in

@@ -33,6 +33,11 @@ public final class CalendarRepositoryImpl: CalendarRepository {
     private lazy var session = Session(interceptor: authInterceptor)
 
     private lazy var provider = MoyaProvider<CalendarAPI>(session: session)
+
+    private var shouldUseServer: Bool {
+        let didLogin: Bool? = ConfigManager.shared.get("didLogin")
+        return didLogin == true && ConfigManager.shared.hasValidAPIBaseURL
+    }
     
     public func fetch(for date: Date) -> Effect<CalendarDatas> {
         
@@ -48,8 +53,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
         
         return Effect.run { [self] send async in
             
-            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
-               didLogin {
+            if shouldUseServer {
                 let result: Result<Response, MoyaError> = await withCheckedContinuation { continuation in
                     provider.request(.calendar(startDate: startDateString, endDate: endDateString, lastFetch: lastDateString)) { moyaResult in
                         switch moyaResult {
@@ -166,8 +170,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
             }
         }
         
-        if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
-           didLogin {
+        if shouldUseServer {
             
             if todo.id.isEmpty {
                 provider.request(.createTodo(todo: TodoDTO(from: todo))) { handleTodoResponse($0) }
@@ -218,8 +221,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
             }
         }
         
-        if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
-           didLogin {
+        if shouldUseServer {
             
             if diary.id.isEmpty {
                 provider.request(.createDiary(diary: DiaryDTO(from: diary))) { handleDiaryResponse($0) }
@@ -267,8 +269,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
             }
         }
         
-        if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
-           didLogin {
+        if shouldUseServer {
             
             if schedule.id.isEmpty {
                 provider.request(.createSchedule(schedule: ScheduleDTO(from: schedule))) { handleScheduleResponse($0) }
@@ -303,8 +304,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
     public func deleteTodo(_ id: String) {
         
         if !id.hasPrefix("local_") {
-            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
-               didLogin {
+            if shouldUseServer {
                 provider.request(.deleteTodo(id: id)) { [self] result in
                     switch result {
                     case .success(let response):
@@ -331,8 +331,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
     public func deleteDiary(_ id: String) {
         
         if !id.hasPrefix("local_") {
-            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
-               didLogin {
+            if shouldUseServer {
                 provider.request(.deleteDiary(id: id)) { [self] result in
                     switch result {
                     case .success(let response):
@@ -359,8 +358,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
     public func deleteSchedule(_ id: String) {
         
         if !id.hasPrefix("local_") {
-            if let didLogin: Bool = ConfigManager.shared.get("didLogin"),
-               didLogin {
+            if shouldUseServer {
                 provider.request(.deleteSchedule(id: id)) { [self] result in
                     switch result {
                     case .success(let response):
@@ -385,6 +383,7 @@ public final class CalendarRepositoryImpl: CalendarRepository {
     }
     
     public func syncServer() {
+        guard ConfigManager.shared.hasValidAPIBaseURL else { return }
         
         let lastDate = authManager.lastLoginDate()
         

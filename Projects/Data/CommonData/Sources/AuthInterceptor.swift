@@ -16,10 +16,9 @@ public final class AuthInterceptor: RequestInterceptor {
     
     @Dependency(\.authManager) var authManager
     
-    private let url = Bundle.main.object(forInfoDictionaryKey:"BASE_URL")
-    
     public func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
-        guard urlRequest.url?.absoluteString.hasPrefix(url as! String) == true
+        guard let apiBaseURL = ConfigManager.shared.apiBaseURL,
+              urlRequest.url?.absoluteString.hasPrefix(apiBaseURL.absoluteString) == true
         else {
             completion(.success(urlRequest))
             return

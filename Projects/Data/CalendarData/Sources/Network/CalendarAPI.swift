@@ -9,6 +9,7 @@
 import Moya
 import Foundation
 import Domain
+import Core
 
 enum CalendarAPI {
     case calendar(startDate: String, endDate: String, lastFetch: String)
@@ -35,13 +36,7 @@ extension CalendarAPI: TargetType {
     }
     
     var baseURL: URL {
-        let url = Bundle.main.object(forInfoDictionaryKey:"BASE_URL")
-        
-        if let urlString = url as? String {
-            return URL(string: urlString)!
-        } else {
-            fatalError("URL String not found")
-        }
+        ConfigManager.shared.apiBaseURL ?? ConfigManager.fallbackBaseURL
     }
     
     var path: String {
