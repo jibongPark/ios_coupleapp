@@ -38,6 +38,15 @@ public final class CalendarRepositoryImpl: CalendarRepository {
         let didLogin: Bool? = ConfigManager.shared.get("didLogin")
         return didLogin == true && ConfigManager.shared.hasValidAPIBaseURL
     }
+
+    private var activeSharedSpaceId: String? {
+        let id: String? = ConfigManager.shared.get("activeSharedSpaceId")
+        return id?.isEmpty == false ? id : nil
+    }
+
+    private func defaultShared(_ shared: [String]) -> [String] {
+        shared.isEmpty ? activeSharedSpaceId.map { [$0] } ?? [] : shared
+    }
     
     public func fetch(for date: Date) -> Effect<CalendarDatas> {
         
@@ -172,8 +181,12 @@ public final class CalendarRepositoryImpl: CalendarRepository {
         
         if shouldUseServer {
             
+            let shared = defaultShared(todo.shared)
+            var sharedTodo = todo
+            sharedTodo.shared = shared
+
             if todo.id.isEmpty {
-                provider.request(.createTodo(todo: TodoDTO(from: todo))) { handleTodoResponse($0) }
+                provider.request(.createTodo(todo: TodoDTO(from: sharedTodo))) { handleTodoResponse($0) }
             } else {
                 
                 let saved = realmKit.fetchData(type: TodoDTO.self, forKey: todo.id)!
@@ -183,14 +196,16 @@ public final class CalendarRepositoryImpl: CalendarRepository {
                 let endDate = saved.endDate == todo.endDate ? nil : todo.endDate
                 let memo = saved.memo == todo.memo ? nil : todo.memo
                 let color = saved.color == todo.color.toInt() ? nil : todo.color.toInt()
-                let shared = Array(saved.shared) == todo.shared ? nil : todo.shared
+                let shared = Array(saved.shared) == sharedTodo.shared ? nil : sharedTodo.shared
                 
                 provider.request(.updateTodo(id: todo.id, title: title, isDone: isDone, endDate: endDate, memo: memo, color: color, shared: shared)) { handleTodoResponse($0) }
             }
             
         } else {
             
-            let dto = TodoDTO(from:todo)
+            var sharedTodo = todo
+            sharedTodo.shared = defaultShared(todo.shared)
+            let dto = TodoDTO(from: sharedTodo)
             
             if dto.id.isEmpty {
                 dto.id = "local_\(UUID().hashValue)"
@@ -223,22 +238,28 @@ public final class CalendarRepositoryImpl: CalendarRepository {
         
         if shouldUseServer {
             
+            let shared = defaultShared(diary.shared)
+            var sharedDiary = diary
+            sharedDiary.shared = shared
+
             if diary.id.isEmpty {
-                provider.request(.createDiary(diary: DiaryDTO(from: diary))) { handleDiaryResponse($0) }
+                provider.request(.createDiary(diary: DiaryDTO(from: sharedDiary))) { handleDiaryResponse($0) }
             } else {
                 
                 let saved = realmKit.fetchData(type: DiaryDTO.self, forKey: diary.id)!
                 
                 let content: String? = saved.content == diary.content ? nil : diary.content
                 let date = saved.date == diary.date ? nil : diary.date
-                let shared = Array(saved.shared) == diary.shared ? nil : diary.shared
+                let shared = Array(saved.shared) == sharedDiary.shared ? nil : sharedDiary.shared
                 
                 provider.request(.updateDiary(id: diary.id, date: date, content: content, shared: shared)) { handleDiaryResponse($0) }
             }
             
         } else {
             
-            let dto = DiaryDTO(from: diary)
+            var sharedDiary = diary
+            sharedDiary.shared = defaultShared(diary.shared)
+            let dto = DiaryDTO(from: sharedDiary)
             
             if dto.id.isEmpty {
                 dto.id = "local_\(UUID().hashValue)"
@@ -271,8 +292,12 @@ public final class CalendarRepositoryImpl: CalendarRepository {
         
         if shouldUseServer {
             
+            let shared = defaultShared(schedule.shared)
+            var sharedSchedule = schedule
+            sharedSchedule.shared = shared
+
             if schedule.id.isEmpty {
-                provider.request(.createSchedule(schedule: ScheduleDTO(from: schedule))) { handleScheduleResponse($0) }
+                provider.request(.createSchedule(schedule: ScheduleDTO(from: sharedSchedule))) { handleScheduleResponse($0) }
             } else {
                 
                 let saved = realmKit.fetchData(type: ScheduleDTO.self, forKey: schedule.id)!
@@ -282,14 +307,16 @@ public final class CalendarRepositoryImpl: CalendarRepository {
                 let endDate = saved.endDate == schedule.endDate ? nil : schedule.endDate
                 let memo = saved.memo == schedule.memo ? nil : schedule.memo
                 let color = saved.color == schedule.color.toInt() ? nil : schedule.color.toInt()
-                let shared = Array(saved.shared) == schedule.shared ? nil : schedule.shared
+                let shared = Array(saved.shared) == sharedSchedule.shared ? nil : sharedSchedule.shared
                 
                 provider.request(.updateSchedule(id: schedule.id, title: title, startDate: startDate, endDate: endDate, memo: memo, color: color, shared: shared)) { handleScheduleResponse($0) }
             }
             
         } else {
             
-            let dto = ScheduleDTO(from: schedule)
+            var sharedSchedule = schedule
+            sharedSchedule.shared = defaultShared(schedule.shared)
+            let dto = ScheduleDTO(from: sharedSchedule)
             
             if dto.id.isEmpty {
                 dto.id = "local_\(UUID().hashValue)"
