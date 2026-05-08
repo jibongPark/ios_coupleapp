@@ -24,6 +24,32 @@ public final class FriendRepositoryImpl: FriendRepository {
             await send(DataResult(message: ConfigManager.missingAPIBaseURLMessage))
         }
     }
+
+    private func mapSharedSpace(_ dto: SharedSpaceDTO) -> SharedSpaceVO {
+        SharedSpaceVO(
+            id: dto.id,
+            type: SharedSpaceType(rawValue: dto.type) ?? .pair,
+            name: dto.name,
+            members: dto.members.map { member in
+                SharedSpaceMemberVO(
+                    userId: member.userId,
+                    name: member.name,
+                    role: SharedSpaceMemberRole(rawValue: member.role) ?? .member
+                )
+            },
+            createdAt: dto.createdAt,
+            updatedAt: dto.updatedAt
+        )
+    }
+
+    private func mapPairingInvite(_ dto: PairingInviteDTO) -> PairingInviteVO {
+        PairingInviteVO(
+            code: dto.code,
+            sharedSpaceId: dto.sharedSpaceId,
+            inviterId: dto.inviterId,
+            expiresAt: dto.expiresAt
+        )
+    }
     
     public func fetch() -> Effect<DataResult<[FriendVO]>> {
         guard ConfigManager.shared.hasValidAPIBaseURL else {
@@ -134,6 +160,94 @@ public final class FriendRepositoryImpl: FriendRepository {
                 FriendVO(id: dto.id, name: dto.name)
             }
             
+            await send(dataResult)
+        }
+    }
+
+    public func fetchActiveSharedSpace() -> Effect<DataResult<SharedSpaceVO?>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
+        let localProvider = provider
+        let mapSharedSpace = self.mapSharedSpace
+
+        return Effect.run { send in
+            let moyaResult = await localProvider.request(.activeSharedSpace)
+
+            let dataResult: DataResult<SharedSpaceVO?> = DataResult(moyaResult, dtoType: SharedSpaceDTO?.self) { dto in
+                dto.map(mapSharedSpace)
+            }
+
+            if let sharedSpace = dataResult.data ?? nil {
+                ConfigManager.shared.set("activeSharedSpaceId", sharedSpace.id)
+            }
+
+            await send(dataResult)
+        }
+    }
+
+    public func createPairingInvite() -> Effect<DataResult<PairingInviteVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
+        let localProvider = provider
+        let mapPairingInvite = self.mapPairingInvite
+
+        return Effect.run { send in
+            let moyaResult = await localProvider.request(.createPairingInvite)
+
+            let dataResult: DataResult<PairingInviteVO> = DataResult(moyaResult, dtoType: PairingInviteDTO.self) { dto in
+                mapPairingInvite(dto)
+            }
+
+            await send(dataResult)
+        }
+    }
+
+    public func acceptPairingInvite(_ code: String) -> Effect<DataResult<SharedSpaceVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
+        let localProvider = provider
+        let mapSharedSpace = self.mapSharedSpace
+
+        return Effect.run { send in
+            let moyaResult = await localProvider.request(.acceptPairingInvite(code: code))
+
+            let dataResult: DataResult<SharedSpaceVO> = DataResult(moyaResult, dtoType: SharedSpaceDTO.self) { dto in
+                mapSharedSpace(dto)
+            }
+
+            if let sharedSpace = dataResult.data {
+                ConfigManager.shared.set("activeSharedSpaceId", sharedSpace.id)
+            }
+
+            await send(dataResult)
+        }
+    }
+
+    public func leaveSharedSpace(_ id: String) -> Effect<DataResult<SharedSpaceVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else {
+            return unavailableBaseURLResult()
+        }
+
+        let localProvider = provider
+        let mapSharedSpace = self.mapSharedSpace
+
+        return Effect.run { send in
+            let moyaResult = await localProvider.request(.leaveSharedSpace(id: id))
+
+            let dataResult: DataResult<SharedSpaceVO> = DataResult(moyaResult, dtoType: SharedSpaceDTO.self) { dto in
+                mapSharedSpace(dto)
+            }
+
+            if dataResult.isSuccess {
+                ConfigManager.shared.set("activeSharedSpaceId", "")
+            }
+
             await send(dataResult)
         }
     }
