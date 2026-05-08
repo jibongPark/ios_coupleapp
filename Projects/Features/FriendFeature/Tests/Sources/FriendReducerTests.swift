@@ -37,4 +37,73 @@ struct FriendReducerTests {
             state.friends = [friend]
         }
     }
+
+    @Test
+    func didFetchActiveSharedSpaceStoresSharedSpace() async {
+        let sharedSpace = SharedSpaceVO(
+            id: "space-id",
+            members: [SharedSpaceMemberVO(userId: "partner-id", name: "파트너")]
+        )
+        let store = TestStore(initialState: FriendReducer.State()) {
+            FriendReducer()
+        }
+
+        await store.send(.didFetchActiveSharedSpace(sharedSpace)) { state in
+            state.activeSharedSpace = sharedSpace
+        }
+    }
+
+    @Test
+    func didCreatePairingInviteStoresInvite() async {
+        let invite = PairingInviteVO(code: "123456", sharedSpaceId: "space-id", inviterId: "me")
+        let store = TestStore(initialState: FriendReducer.State()) {
+            FriendReducer()
+        }
+
+        await store.send(.didCreatePairingInvite(invite)) { state in
+            state.pairingInvite = invite
+        }
+    }
+
+    @Test
+    func pairingCodeChangedUpdatesInput() async {
+        let store = TestStore(initialState: FriendReducer.State()) {
+            FriendReducer()
+        }
+
+        await store.send(.pairingCodeChanged("ABC123")) { state in
+            state.pairingCode = "ABC123"
+        }
+    }
+
+    @Test
+    func didAcceptPairingInviteStoresSharedSpaceAndClearsCode() async {
+        let sharedSpace = SharedSpaceVO(id: "space-id")
+        var state = FriendReducer.State()
+        state.pairingCode = "ABC123"
+        let store = TestStore(initialState: state) {
+            FriendReducer()
+        }
+
+        await store.send(.didAcceptPairingInvite(sharedSpace)) { state in
+            state.activeSharedSpace = sharedSpace
+            state.pairingCode = ""
+            state.pairingInvite = nil
+        }
+    }
+
+    @Test
+    func didLeaveSharedSpaceClearsSharedSpace() async {
+        var state = FriendReducer.State()
+        state.activeSharedSpace = SharedSpaceVO(id: "space-id")
+        state.pairingInvite = PairingInviteVO(code: "123456", sharedSpaceId: "space-id", inviterId: "me")
+        let store = TestStore(initialState: state) {
+            FriendReducer()
+        }
+
+        await store.send(.didLeaveSharedSpace) { state in
+            state.activeSharedSpace = nil
+            state.pairingInvite = nil
+        }
+    }
 }
