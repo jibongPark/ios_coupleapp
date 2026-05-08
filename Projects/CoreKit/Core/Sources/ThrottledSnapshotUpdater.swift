@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ThrottledSnapshotUpdater: Sendable {
+public struct ThrottledSnapshotUpdater: Equatable, Sendable {
     public let minimumInterval: TimeInterval
     private var lastUpdateDate: Date?
 
