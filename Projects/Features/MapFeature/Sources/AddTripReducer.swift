@@ -8,7 +8,7 @@
 
 import Foundation
 import ComposableArchitecture
-import SwiftUICore
+import SwiftUI
 import Domain
 import Core
 import UIKit

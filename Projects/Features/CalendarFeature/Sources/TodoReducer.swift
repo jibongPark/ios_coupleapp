@@ -9,7 +9,7 @@
 import Foundation
 import ComposableArchitecture
 import Domain
-import SwiftUICore
+import SwiftUI
 
 @Reducer
 struct TodoReducer {
