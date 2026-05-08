@@ -48,6 +48,9 @@ import com.memorybox.android.friend.HttpUrlConnectionFriendTransport
 import com.memorybox.android.friend.LocalFriendRepository
 import com.memorybox.android.friend.NetworkFriendRepository
 import com.memorybox.android.map.ui.MapScreen
+import com.memorybox.android.pairing.LocalPairingRepository
+import com.memorybox.android.pairing.NetworkPairingRepository
+import com.memorybox.android.pairing.SharedPreferencesActiveSharedSpaceStore
 import com.memorybox.android.widget.ui.DdayScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -109,6 +112,25 @@ fun MemoryBoxApp() {
             )
         } else {
             LocalFriendRepository(session?.uid.orEmpty())
+        }
+    }
+
+    val pairingStore = remember(context) { SharedPreferencesActiveSharedSpaceStore(context) }
+    val pairingRepository = remember(activeBaseUrl, session?.accessToken, session?.uid, pairingStore) {
+        if (activeBaseUrl.isNotBlank() && session?.accessToken?.isNotBlank() == true) {
+            NetworkPairingRepository(
+                transport = HttpUrlConnectionFriendTransport(
+                    baseUrl = activeBaseUrl,
+                    bearerTokenProvider = { sessionStore.load()?.accessToken },
+                    refreshTokenProvider = { refreshAccessToken(activeBaseUrl, sessionStore) },
+                ),
+                store = pairingStore,
+            )
+        } else {
+            LocalPairingRepository(
+                userId = session?.uid.orEmpty(),
+                store = pairingStore,
+            )
         }
     }
 
@@ -203,6 +225,7 @@ fun MemoryBoxApp() {
                     userId = session?.uid.orEmpty(),
                     modifier = Modifier.padding(padding),
                     repository = friendRepository,
+                    pairingRepository = pairingRepository,
                 )
                 SideDestination.Setting -> SettingScreen(
                     session = session,

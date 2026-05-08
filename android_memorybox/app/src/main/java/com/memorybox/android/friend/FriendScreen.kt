@@ -23,6 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.memorybox.android.core.network.DataResult
+import com.memorybox.android.pairing.LocalPairingRepository
+import com.memorybox.android.pairing.PairingRepository
+import com.memorybox.android.pairing.PairingScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -30,6 +33,7 @@ fun FriendScreen(
     userId: String,
     modifier: Modifier = Modifier,
     repository: FriendRepository = remember(userId) { LocalFriendRepository(userId) },
+    pairingRepository: PairingRepository = remember(userId) { LocalPairingRepository(userId) },
 ) {
     var inviteCode by remember { mutableStateOf("") }
     var screenState by remember(repository) { mutableStateOf(FriendScreenState(isLoading = true)) }
@@ -76,6 +80,11 @@ fun FriendScreen(
     ) {
         Text("친구", style = MaterialTheme.typography.titleLarge)
         Text("uid : $userId", style = MaterialTheme.typography.bodyMedium)
+
+        PairingScreen(
+            userId = userId,
+            repository = pairingRepository,
+        )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
