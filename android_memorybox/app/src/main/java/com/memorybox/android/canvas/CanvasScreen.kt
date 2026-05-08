@@ -56,6 +56,7 @@ fun CanvasScreen(
     var selectedColor by remember { mutableStateOf("#3D2C2E") }
     var lineWidth by remember { mutableStateOf(6f) }
     var message by remember { mutableStateOf<String?>(null) }
+    val snapshotNotifier = remember(context) { CanvasSnapshotNotifier(context) }
 
     LaunchedEffect(sharedSpaceId) {
         when (val result = repository.fetchCanvas(sharedSpaceId)) {
@@ -109,17 +110,17 @@ fun CanvasScreen(
                                 if (snapshotThrottle.shouldUpdate()) {
                                     val file = File(context.filesDir, "canvas/snapshots/${sharedSpaceId}.png")
                                     renderer.writePng(strokes, file)
-                                    repository.updateSnapshot(
-                                        CanvasSnapshot(
-                                            id = "snapshot-${System.currentTimeMillis()}",
-                                            canvasId = stored.canvasId,
-                                            sharedSpaceId = sharedSpaceId,
-                                            version = stored.sequence,
-                                            localPath = file.absolutePath,
-                                            width = 800,
-                                            height = 800,
-                                        ),
+                                    val snapshot = CanvasSnapshot(
+                                        id = "snapshot-${System.currentTimeMillis()}",
+                                        canvasId = stored.canvasId,
+                                        sharedSpaceId = sharedSpaceId,
+                                        version = stored.sequence,
+                                        localPath = file.absolutePath,
+                                        width = 800,
+                                        height = 800,
                                     )
+                                    repository.updateSnapshot(snapshot)
+                                    snapshotNotifier.showLatest(snapshot)
                                 }
                             }
                             currentStroke = null
