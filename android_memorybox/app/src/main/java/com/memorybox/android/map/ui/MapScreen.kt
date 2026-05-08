@@ -124,11 +124,12 @@ fun MapScreen(modifier: Modifier = Modifier) {
             .padding(12.dp),
     ) {
         Text("여행지도", style = MaterialTheme.typography.titleLarge)
+        Text("지역을 선택해 여행 기록을 남겨보세요.", style = MaterialTheme.typography.bodyMedium)
         Box(Modifier.fillMaxSize()) {
             if (error != null) {
                 Text(error.orEmpty())
             } else if (polygons.isEmpty()) {
-                Text("Loading GeoJSON...")
+                Text("지도 데이터를 불러오는 중입니다...")
             } else {
                 SigunguCanvas(
                     polygons = polygons,

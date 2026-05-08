@@ -111,6 +111,9 @@ fun FriendScreen(
 
         Spacer(Modifier.height(8.dp))
         Text("친구 요청", style = MaterialTheme.typography.titleMedium)
+        if (!screenState.isLoading && screenState.requests.isEmpty()) {
+            Text("받거나 보낸 친구 요청이 없습니다.", style = MaterialTheme.typography.bodyMedium)
+        }
         screenState.requests.forEach { request ->
             val isMyRequest = request.senderId == userId
             Row(
@@ -167,6 +170,9 @@ fun FriendScreen(
         }
 
         Text("친구 목록", style = MaterialTheme.typography.titleMedium)
+        if (!screenState.isLoading && screenState.friends.isEmpty()) {
+            Text("아직 등록된 친구가 없습니다.", style = MaterialTheme.typography.bodyMedium)
+        }
         screenState.friends.forEach { friend ->
             Row(
                 modifier = Modifier.fillMaxWidth(),

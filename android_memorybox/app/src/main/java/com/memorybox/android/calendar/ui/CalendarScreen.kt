@@ -65,6 +65,7 @@ fun CalendarScreen(
     var calendarData by remember { mutableStateOf(CalendarDatas()) }
     val visibleDates = CalendarGrid.visibleDates(selectedMonth.atDay(1))
     val selectedKey = CalendarGrid.dayKey(selectedDate)
+    val selectedItems = calendarData.textItemsForDay(selectedKey)
 
     fun reloadVisibleDataFromLocal() {
         calendarData = calendarRepository.fetchVisibleGrid(selectedMonth.atDay(1))
@@ -142,8 +143,12 @@ fun CalendarScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text("${selectedDate.dayOfMonth}. ${selectedDate.dayOfWeek}", style = MaterialTheme.typography.titleMedium)
-                calendarData.textItemsForDay(selectedKey).forEach { item ->
-                    Text("${item.type}  ${item.title}")
+                if (selectedItems.isEmpty()) {
+                    Text("선택한 날짜에 등록된 일정이 없습니다.", style = MaterialTheme.typography.bodyMedium)
+                } else {
+                    selectedItems.forEach { item ->
+                        Text("${item.type}  ${item.title}")
+                    }
                 }
                 OutlinedTextField(
                     value = title,

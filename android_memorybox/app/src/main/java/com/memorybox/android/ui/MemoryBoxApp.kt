@@ -1,5 +1,6 @@
 package com.memorybox.android.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
@@ -60,6 +62,7 @@ private enum class SideDestination {
     Home,
     Widget,
     Friend,
+    Setting,
 }
 
 @Composable
@@ -137,6 +140,10 @@ fun MemoryBoxApp() {
                         destination = SideDestination.Friend
                         scope.launch { drawerState.close() }
                     },
+                    onSetting = {
+                        destination = SideDestination.Setting
+                        scope.launch { drawerState.close() }
+                    },
                     onLogout = {
                         sessionStore.clear()
                         session = null
@@ -196,6 +203,11 @@ fun MemoryBoxApp() {
                     userId = session?.uid.orEmpty(),
                     modifier = Modifier.padding(padding),
                     repository = friendRepository,
+                )
+                SideDestination.Setting -> SettingScreen(
+                    session = session,
+                    activeBaseUrl = activeBaseUrl,
+                    modifier = Modifier.padding(padding),
                 )
             }
         }
@@ -343,10 +355,14 @@ private fun SideMenu(
     onLogin: () -> Unit,
     onWidget: () -> Unit,
     onFriend: () -> Unit,
+    onSetting: () -> Unit,
     onLogout: () -> Unit,
     onDeleteUser: () -> Unit,
 ) {
-    Column(Modifier.padding(20.dp)) {
+    Column(
+        modifier = Modifier.padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         if (session == null) {
             Button(onClick = onLogin, modifier = Modifier.fillMaxWidth()) {
                 Text("로그인")
@@ -354,6 +370,8 @@ private fun SideMenu(
         } else {
             Text("${session.userName} 님 환영합니다.")
         }
+
+        HorizontalDivider()
 
         Button(onClick = onWidget, modifier = Modifier.fillMaxWidth()) {
             Text("위젯")
@@ -363,6 +381,13 @@ private fun SideMenu(
             Button(onClick = onFriend, modifier = Modifier.fillMaxWidth()) {
                 Text("친구")
             }
+        }
+
+        Button(onClick = onSetting, modifier = Modifier.fillMaxWidth()) {
+            Text("설정")
+        }
+
+        if (session != null) {
             Button(onClick = onDeleteUser, modifier = Modifier.fillMaxWidth()) {
                 Text("회원탈퇴")
             }
@@ -370,6 +395,29 @@ private fun SideMenu(
                 Text("로그아웃")
             }
         }
+    }
+}
+
+@Composable
+private fun SettingScreen(
+    session: UserSession?,
+    activeBaseUrl: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text("설정", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+        Text("앱 정보", style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+        Text("앱 이름: MemoryBox")
+        Text("빌드 타입: ${BuildConfig.BUILD_TYPE}")
+        Text("서버 주소: ${activeBaseUrl.ifBlank { "설정되지 않음" }}")
+
+        HorizontalDivider()
+
+        Text("계정", style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+        Text(session?.userName?.let { "$it 님으로 로그인됨" } ?: "로그인되어 있지 않습니다.")
     }
 }
 

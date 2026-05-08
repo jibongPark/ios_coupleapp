@@ -230,6 +230,10 @@ fun DdayScreen(modifier: Modifier = Modifier) {
             }
         }
 
+        if (items.isEmpty()) {
+            Text("등록된 D-Day가 없습니다. 첫 기념일을 추가해보세요.", style = MaterialTheme.typography.bodyMedium)
+        }
+
         items.forEach { item ->
             Card(Modifier.fillMaxWidth()) {
                 Column(
