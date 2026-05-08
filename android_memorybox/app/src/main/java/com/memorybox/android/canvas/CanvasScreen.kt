@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -80,19 +78,20 @@ fun CanvasScreen(
                 .pointerInput(canvas?.id, selectedTool, selectedColor, lineWidth) {
                     detectDragGestures(
                         onDragStart = { offset ->
-                            val activeCanvas = canvas ?: return@detectDragGestures
-                            val sequence = (strokes.maxOfOrNull { it.sequence } ?: 0) + 1
-                            currentStroke = CanvasStroke(
-                                id = "stroke-${System.currentTimeMillis()}",
-                                canvasId = activeCanvas.id,
-                                sharedSpaceId = sharedSpaceId,
-                                authorId = "local",
-                                sequence = sequence,
-                                tool = selectedTool,
-                                colorHex = selectedColor,
-                                lineWidth = lineWidth,
-                                points = listOf(offset.toCanvasPoint(size.width.toFloat(), size.height.toFloat())),
-                            )
+                            canvas?.let { activeCanvas ->
+                                val sequence = (strokes.maxOfOrNull { it.sequence } ?: 0) + 1
+                                currentStroke = CanvasStroke(
+                                    id = "stroke-${System.currentTimeMillis()}",
+                                    canvasId = activeCanvas.id,
+                                    sharedSpaceId = sharedSpaceId,
+                                    authorId = "local",
+                                    sequence = sequence,
+                                    tool = selectedTool,
+                                    colorHex = selectedColor,
+                                    lineWidth = lineWidth,
+                                    points = listOf(offset.toCanvasPoint(size.width.toFloat(), size.height.toFloat())),
+                                )
+                            }
                         },
                         onDrag = { change, _ ->
                             currentStroke = currentStroke?.copy(points = currentStroke!!.points + change.position.toCanvasPoint(size.width.toFloat(), size.height.toFloat()))
