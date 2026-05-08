@@ -299,3 +299,13 @@ Proceed with the recommended MVP:
 - Lock screen snapshot updates through throttled platform-specific surfaces.
 - Pairing/sharedSpaceId is required for sync.
 - First version supports handwriting/drawing strokes; typed text can be added later.
+
+## Implemented Repository Scope (2026-05-08)
+
+The MVP implementation follows the OS-limited design:
+
+- iOS adds `CanvasDomain`, `CanvasData`, `CanvasFeature`, local JSON persistence, Moya API boundary, SwiftUI drawing surface, and App Group snapshot writer.
+- Existing iOS WidgetKit extension now tries to show `LiveCanvas/latest_canvas.png` from `group.com.bongbong.coupleapp` before falling back to the D-Day widget content.
+- Android adds serializable canvas models, app-private JSON repository, Compose drawing screen, polling/API path boundary, snapshot renderer/throttle, and a lock-screen-visible notification fallback.
+- Backend realtime/WebSocket is not present in this repository, so the app boundary is stroke-end persistence + fetch-after-sequence polling, with local-first behavior when no base URL exists.
+- Actual iOS Lock Screen refresh cadence remains subject to WidgetKit timeline/system policy; the repository provides the App Group surface and conservative snapshot updates rather than forcing high-frequency lock-screen writes.

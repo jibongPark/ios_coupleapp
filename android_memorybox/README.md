@@ -131,3 +131,34 @@ When an active shared space is cached locally, new Calendar todos/schedules/diar
 ## Current Scope
 
 This is a buildable native Android implementation with local-first feature behavior and backend-compatible API boundaries. Production Apple/Kakao login and shared media sync still require platform app keys, redirect URLs, backend credentials, and shared media contracts outside this repository.
+
+## Live Canvas / 우리 낙서장
+
+`canvas` package adds the paired Live Canvas MVP:
+
+- `CanvasModels.kt`: shared canvas, stroke, point, snapshot models with normalized 0.0-1.0 points.
+- `CanvasRepository.kt`: local-first JSON persistence, offline pending strokes, clear, snapshot metadata, and backend-compatible API boundary paths.
+- `CanvasSnapshotRenderer.kt` + `SnapshotThrottle.kt`: stroke-end snapshot rendering and 1-3 second throttling support.
+- `CanvasScreen.kt`: Compose drawing screen with pen/eraser/color/width/clear controls, blocked when no active shared space exists.
+- `CanvasSnapshotNotifier.kt`: lock-screen-visible notification fallback that displays the latest snapshot where Android notification policy permits.
+
+Backend API boundary used by the MVP:
+
+- `GET /shared-spaces/{sharedSpaceId}/canvas`
+- `POST /shared-spaces/{sharedSpaceId}/canvas/strokes`
+- `GET /shared-spaces/{sharedSpaceId}/canvas/strokes?afterSequence={sequence}`
+- `POST /shared-spaces/{sharedSpaceId}/canvas/clear`
+- `POST /shared-spaces/{sharedSpaceId}/canvas/snapshot`
+- `GET /shared-spaces/{sharedSpaceId}/canvas/snapshot`
+
+### Live Canvas Manual QA
+
+- [ ] Pair two users so `SharedPreferencesActiveSharedSpaceStore` contains an active shared space.
+- [ ] Open side menu → `우리 낙서장`.
+- [ ] Confirm unpaired users see the pairing-required message and cannot publish strokes.
+- [ ] Draw with pen; leave the screen and return; strokes remain from local JSON storage.
+- [ ] Switch eraser/color/width and verify rendered strokes update.
+- [ ] Tap `전체 지우기`; local strokes clear and canvas version advances.
+- [ ] While offline or without `MEMORYBOX_BASE_URL`, drawing still persists locally and remote sync fails without crashing.
+- [ ] After stroke end, a snapshot file is written under app-private `canvas/snapshots/`.
+- [ ] On Android versions/settings that allow lock-screen notification display, latest snapshot appears in the `우리 낙서장` notification; otherwise use it as the documented fallback surface.
