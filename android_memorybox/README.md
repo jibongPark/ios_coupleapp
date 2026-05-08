@@ -90,6 +90,25 @@ echo "$JAVA_HOME"
 - [ ] 홈 위젯에 제목/날짜 표시
 - [ ] 이미지/정렬 옵션 반영
 
+## Automated Verification Coverage
+
+The current unit test suite covers local-first domain behavior and backend boundary helpers:
+
+- Auth session/login/refresh/logout/delete-user retry behavior
+- Calendar grid generation, local persistence, sync payloads, and corrupted store quarantine
+- Friend endpoint routing, friend request mutations, and failure messages
+- Map GeoJSON parsing, trip persistence, and image file guards
+- D-Day widget item persistence, render state text, and image file guards
+- Core date and endpoint helpers
+
+Remaining gaps require configured Android tooling, emulator/device checks, or backend credentials:
+
+- Compose UI navigation and form interaction tests
+- Native app widget `RemoteViews` instrumentation tests
+- Real image picker URI handling on device/emulator
+- Backend integration for Apple/Kakao auth, calendar sync, and friend mutations
+- APK install/launch smoke test after `assembleDebug`
+
 ## Current Scope
 
 This is a buildable native Android implementation with local-first feature behavior and backend-compatible API boundaries. Production Apple/Kakao login still requires platform app keys, redirect URLs, and console configuration outside this repository.
