@@ -121,6 +121,53 @@ class CalendarRepositoryTest {
     }
 
     @Test
+    fun newRecordsUseActiveSharedSpaceWhenNoExplicitSharingExists() {
+        val repository = repository(
+            tempStoreFile(),
+            ids = mutableListOf("local_todo", "local_diary", "local_schedule"),
+            activeSharedSpaceId = "space-1",
+        )
+
+        val todo = repository.updateTodo(Todo(title = "Todo", endDate = LocalDate.of(2026, 4, 7)))
+        val diary = repository.updateDiary(Diary(date = LocalDate.of(2026, 4, 7), content = "Diary"))
+        val schedule = repository.updateSchedule(
+            Schedule(title = "Schedule", startDate = LocalDate.of(2026, 4, 7), endDate = LocalDate.of(2026, 4, 8))
+        )
+
+        val payload = repository.buildSyncPayload()
+
+        assertEquals("space-1", todo.sharedSpaceId)
+        assertEquals(listOf("space-1"), todo.shared)
+        assertEquals("space-1", diary.sharedSpaceId)
+        assertEquals("space-1", schedule.sharedSpaceId)
+        assertEquals("space-1", payload.todos.single().sharedSpaceId)
+        assertEquals(listOf("space-1"), payload.diaries.single().shared)
+        assertEquals("space-1", payload.schedules.single().sharedSpaceId)
+    }
+
+    @Test
+    fun explicitSharedSpaceIsPreservedOverActiveSharedSpace() {
+        val repository = repository(
+            tempStoreFile(),
+            ids = mutableListOf("local_todo"),
+            activeSharedSpaceId = "space-active",
+        )
+
+        val todo = repository.updateTodo(
+            Todo(
+                title = "Todo",
+                endDate = LocalDate.of(2026, 4, 7),
+                shared = listOf("space-explicit"),
+                sharedSpaceId = "space-explicit",
+            )
+        )
+
+        assertEquals("space-explicit", todo.sharedSpaceId)
+        assertEquals(listOf("space-explicit"), repository.buildSyncPayload().todos.single().shared)
+    }
+
+
+    @Test
     fun syncServerSendsPayloadThroughTransportAndReplacesLocalRecordsOnSuccess() {
         val fakeTransport = FakeCalendarServerTransport(
             response = CalendarDto(
@@ -189,12 +236,14 @@ class CalendarRepositoryTest {
         file: File,
         ids: MutableList<String> = mutableListOf("local_unused"),
         transport: CalendarServerTransport = FakeCalendarServerTransport(),
+        activeSharedSpaceId: String? = null,
     ): CalendarRepositoryImpl {
         return CalendarRepositoryImpl(
             store = CalendarJsonStore(file),
             transport = transport,
             idProvider = { ids.removeAt(0) },
             clock = fixedClock,
+            activeSharedSpaceIdProvider = { activeSharedSpaceId },
         )
     }
 

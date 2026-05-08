@@ -198,6 +198,9 @@ fun DdayScreen(modifier: Modifier = Modifier) {
                 val oldImagePath = editingId?.let { id ->
                     items.firstOrNull { it.id == id }?.imagePath
                 }
+                val existingSharedSpaceId = editingId?.let { id ->
+                    items.firstOrNull { it.id == id }?.sharedSpaceId
+                }
                 val item = DdayWidgetItem(
                     id = editingId ?: UUID.randomUUID().toString(),
                     title = title,
@@ -207,6 +210,7 @@ fun DdayScreen(modifier: Modifier = Modifier) {
                     dateAlignment = dateAlignment,
                     isShowTitle = isShowTitle,
                     titleAlignment = titleAlignment,
+                    sharedSpaceId = existingSharedSpaceId,
                 )
                 DdayWidgetStore.upsert(context, item)
                 if (

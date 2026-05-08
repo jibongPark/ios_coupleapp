@@ -18,6 +18,7 @@ data class Todo(
     val isDone: Boolean = false,
     val color: Int = 0x0000FF,
     val shared: List<String> = emptyList(),
+    val sharedSpaceId: String? = null,
 )
 
 data class Schedule(
@@ -28,6 +29,7 @@ data class Schedule(
     val memo: String = "",
     val color: Int = 0x0000FF,
     val shared: List<String> = emptyList(),
+    val sharedSpaceId: String? = null,
 )
 
 data class Diary(
@@ -35,6 +37,7 @@ data class Diary(
     val date: LocalDate = LocalDate.now(),
     val content: String = "",
     val shared: List<String> = emptyList(),
+    val sharedSpaceId: String? = null,
 )
 
 data class CalendarOp(

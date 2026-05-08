@@ -98,6 +98,7 @@ fun MemoryBoxApp() {
         CalendarRepositoryImpl(
             store = CalendarJsonStore.appPrivate(context),
             transport = transport,
+            activeSharedSpaceIdProvider = { SharedPreferencesActiveSharedSpaceStore(context).load()?.id },
         )
     }
 
@@ -363,6 +364,7 @@ private fun syncCalendarAfterLogin(
     if (baseUrl.isBlank()) return
     val repository = CalendarRepositoryImpl(
         store = CalendarJsonStore.appPrivate(context),
+        activeSharedSpaceIdProvider = { SharedPreferencesActiveSharedSpaceStore(context).load()?.id },
         transport = NetworkCalendarServerTransport(
             client = UrlConnectionMemoryBoxHttpClient(MemoryBoxConfig(baseUrl)),
             accessTokenProvider = { sessionStore.load()?.accessToken },

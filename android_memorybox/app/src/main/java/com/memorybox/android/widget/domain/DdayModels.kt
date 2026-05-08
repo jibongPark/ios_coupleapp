@@ -28,6 +28,7 @@ data class DdayWidgetItem(
     val dateAlignment: WidgetAlign = WidgetAlign.Center,
     val isShowTitle: Boolean = true,
     val titleAlignment: WidgetAlign = WidgetAlign.Center,
+    val sharedSpaceId: String? = null,
 ) {
     val startDate: LocalDate
         get() = LocalDate.parse(startDateIso)

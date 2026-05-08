@@ -2,11 +2,15 @@ package com.memorybox.android.map.data
 
 import android.content.Context
 import com.memorybox.android.map.domain.Trip
+import com.memorybox.android.pairing.SharedPreferencesActiveSharedSpaceStore
 import java.io.File
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
-class TripStore(private val storageFile: File) {
+class TripStore(
+    private val storageFile: File,
+    private val activeSharedSpaceIdProvider: () -> String? = { null },
+) {
     private val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
@@ -28,8 +32,17 @@ class TripStore(private val storageFile: File) {
 
     fun upsert(trip: Trip) {
         val trips = loadAll().toMutableMap()
-        trips[trip.sigunguCode] = trip
+        trips[trip.sigunguCode] = trip.withDefaultSharedSpaceId()
         saveAll(trips.values)
+    }
+
+    private fun Trip.withDefaultSharedSpaceId(): Trip {
+        val activeSharedSpaceId = activeSharedSpaceIdProvider()?.takeIf { it.isNotBlank() }
+        return if (sharedSpaceId == null && activeSharedSpaceId != null) {
+            copy(sharedSpaceId = activeSharedSpaceId)
+        } else {
+            this
+        }
     }
 
     fun delete(sigunguCode: Int): Trip? {
@@ -59,6 +72,9 @@ class TripStore(private val storageFile: File) {
     companion object {
         private const val FILE_NAME = "map_trips.json"
 
-        fun appPrivate(context: Context): TripStore = TripStore(File(context.filesDir, FILE_NAME))
+        fun appPrivate(context: Context): TripStore = TripStore(
+            storageFile = File(context.filesDir, FILE_NAME),
+            activeSharedSpaceIdProvider = { SharedPreferencesActiveSharedSpaceStore(context).load()?.id },
+        )
     }
 }

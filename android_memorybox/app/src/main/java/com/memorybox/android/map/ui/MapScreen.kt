@@ -71,6 +71,7 @@ fun MapScreen(modifier: Modifier = Modifier) {
             scale = trip?.scale ?: 1f,
             centerX = trip?.centerX ?: 0f,
             centerY = trip?.centerY ?: 0f,
+            sharedSpaceId = trip?.sharedSpaceId,
         )
         imageError = null
     }
@@ -381,6 +382,7 @@ private data class TripEditorState(
     val scale: Float,
     val centerX: Float,
     val centerY: Float,
+    val sharedSpaceId: String? = null,
     val newImages: List<String> = emptyList(),
     val removedImages: List<String> = emptyList(),
 ) {
@@ -393,6 +395,7 @@ private data class TripEditorState(
         scale = scale,
         centerX = centerX,
         centerY = centerY,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 

@@ -2,6 +2,7 @@ package com.memorybox.android.widget.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.memorybox.android.pairing.SharedPreferencesActiveSharedSpaceStore
 import com.memorybox.android.widget.domain.DdayWidgetItem
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
@@ -24,7 +25,7 @@ object DdayWidgetStore {
     }
 
     fun upsert(context: Context, item: DdayWidgetItem) {
-        saveState(context, upsert(loadState(context), item))
+        saveState(context, upsert(loadState(context), item, activeSharedSpaceId(context)))
     }
 
     fun remove(context: Context, id: String) {
@@ -42,13 +43,23 @@ object DdayWidgetStore {
     }
 
     fun upsert(state: State, item: DdayWidgetItem): State {
+        return upsert(state, item, activeSharedSpaceId = null)
+    }
+
+    fun upsert(state: State, item: DdayWidgetItem, activeSharedSpaceId: String?): State {
+        val itemWithSharedSpace = item.withDefaultSharedSpaceId(activeSharedSpaceId)
         val existingIndex = state.items.indexOfFirst { it.id == item.id }
         val updatedItems = if (existingIndex >= 0) {
-            state.items.map { existing -> if (existing.id == item.id) item else existing }
+            state.items.map { existing -> if (existing.id == item.id) itemWithSharedSpace else existing }
         } else {
-            state.items + item
+            state.items + itemWithSharedSpace
         }
-        return State(items = updatedItems, selectedId = item.id)
+        return State(items = updatedItems, selectedId = itemWithSharedSpace.id)
+    }
+
+    private fun DdayWidgetItem.withDefaultSharedSpaceId(activeSharedSpaceId: String?): DdayWidgetItem {
+        val id = activeSharedSpaceId?.takeIf { it.isNotBlank() }
+        return if (sharedSpaceId == null && id != null) copy(sharedSpaceId = id) else this
     }
 
     fun remove(state: State, id: String): State {
@@ -104,6 +115,9 @@ object DdayWidgetStore {
         }
         editor.apply()
     }
+
+    private fun activeSharedSpaceId(context: Context): String? =
+        SharedPreferencesActiveSharedSpaceStore(context).load()?.id
 
     private fun normalizeSelectedId(items: List<DdayWidgetItem>, selectedId: String?): String? {
         return selectedId?.takeIf { id -> items.any { it.id == id } } ?: items.firstOrNull()?.id
