@@ -29,4 +29,12 @@ class MemoryBoxEndpointsTest {
         assertEquals("/friend/accept/u1", MemoryBoxEndpoints.Friend.accept("u1"))
         assertEquals("/friend/u1", MemoryBoxEndpoints.Friend.friend("u1"))
     }
+
+    @Test
+    fun sharedSpaceEndpointsMatchPairingPlanPaths() {
+        assertEquals("/shared-spaces/active", MemoryBoxEndpoints.SharedSpace.active)
+        assertEquals("/shared-spaces/invites", MemoryBoxEndpoints.SharedSpace.invites)
+        assertEquals("/shared-spaces/invites/ABC123/accept", MemoryBoxEndpoints.SharedSpace.acceptInvite("ABC123"))
+        assertEquals("/shared-spaces/space-1/members/me", MemoryBoxEndpoints.SharedSpace.leave("space-1"))
+    }
 }

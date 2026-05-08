@@ -25,4 +25,12 @@ object MemoryBoxEndpoints {
         fun accept(friendId: String) = "/friend/accept/$friendId"
         fun friend(friendId: String) = "/friend/$friendId"
     }
+
+    object SharedSpace {
+        const val active = "/shared-spaces/active"
+        const val invites = "/shared-spaces/invites"
+
+        fun acceptInvite(code: String) = "/shared-spaces/invites/$code/accept"
+        fun leave(id: String) = "/shared-spaces/$id/members/me"
+    }
 }
