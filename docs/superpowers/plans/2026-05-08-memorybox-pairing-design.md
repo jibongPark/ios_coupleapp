@@ -192,11 +192,46 @@ States:
 5. Add sharedSpaceId to trip and D-Day persistence/sync.
 6. Add tests and update README/manual QA checklist.
 
+## Implemented App Scope
+
+The first implementation pass adds the shared-space shape without requiring backend schema changes beyond the planned endpoints:
+
+- iOS `FriendDomain` / `FriendData` include `SharedSpaceVO`, `PairingInviteVO`, DTOs, and `/shared-spaces/*` API routing.
+- iOS Friend feature has pairing reducer state and controls for active space fetch, invite creation, accept code, and leave pair.
+- iOS Calendar writes default empty `shared` arrays to the cached `activeSharedSpaceId`.
+- Android adds `SharedSpace`, `SharedSpaceMember`, `PairingInvite`, local/network pairing repositories, and a Compose pairing section inside Friend.
+- Android Calendar, Map trip, and D-Day records can store `sharedSpaceId` and apply the cached active shared space by default.
+- Android D-Day selected widget ID remains device-local; only D-Day record data gets `sharedSpaceId`.
+
+## Verification Notes
+
+Local implementation verification should include:
+
+```bash
+grep -RIn "SharedSpace\|sharedSpaceId\|Pairing" Projects android_memorybox | head -200
+git status --short
+```
+
+When tooling is installed:
+
+```bash
+cd android_memorybox
+./gradlew testDebugUnitTest
+./gradlew assembleDebug
+
+tuist generate
+tuist test
+```
+
+During this implementation session, Java/Tuist/Swift tooling may be unavailable in the runner. In that case, grep/static verification plus code review should be recorded as the executed gate.
+
 ## Open Backend Questions
 
 - Does the existing backend already have pair/group tables, or only friends?
 - Should accepting a friend request automatically create a pair, or should pairing be a separate explicit action?
+- Should calendar sync prefer `sharedSpaceId` as a top-level field, the existing `shared` array, or both during migration?
 - How should shared trip images be uploaded and served?
+- Should D-Day sync expose selected widget item, or keep selection permanently device-local?
 - Should unpair hide old shared data, copy it locally, or keep it visible as historical data?
 
 ## Decision

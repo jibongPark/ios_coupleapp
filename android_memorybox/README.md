@@ -9,6 +9,7 @@ Standalone Kotlin Android port of the iOS MemoryBox app.
 - `calendar`: calendar grid logic, DTOs, and Compose calendar MVP.
 - `map`: bundled `sigungu.geojson` parser and Compose canvas map MVP.
 - `friend`: friend/request models and Compose MVP screen.
+- `pairing`: shared-space models, invite/accept/leave repositories, local active-pair persistence, and Compose pairing controls.
 - `widget`: D-Day models, local store, edit screen, and native Android app widget provider.
 
 ## iOS Mapping
@@ -69,13 +70,17 @@ echo "$JAVA_HOME"
 - [ ] 할 일 생성/수정/삭제 가능
 - [ ] 일정 생성/수정/삭제 가능
 - [ ] 다이어리 생성/수정/삭제 가능
+- [ ] 페어링 상태에서 새 항목 생성 시 shared/sharedSpaceId가 active shared space로 저장됨
 - [ ] 로그인 후 서버 sync 시 로컬 데이터 유지/동기화 확인
 
-### Friend
+### Friend / Pairing
 - [ ] 친구 목록 조회
 - [ ] 친구 요청 목록 조회
 - [ ] 친구 요청 전송
 - [ ] 친구 수락/거절/삭제
+- [ ] 페어링 초대 코드 생성
+- [ ] 파트너 코드 입력 후 active shared space 표시
+- [ ] 페어링 해제 후 새 Calendar/Map/D-Day 기록에 sharedSpaceId가 붙지 않음
 - [ ] API 실패 메시지가 크래시 없이 표시됨
 
 ### Map
@@ -86,7 +91,8 @@ echo "$JAVA_HOME"
 
 ### D-Day Widget
 - [ ] D-Day 항목 추가/수정/삭제
-- [ ] 대표 항목 선택
+- [ ] 페어링 상태에서 새 D-Day record에 sharedSpaceId가 저장됨
+- [ ] 대표 항목 선택은 기기 로컬 상태로 유지됨
 - [ ] 홈 위젯에 제목/날짜 표시
 - [ ] 이미지/정렬 옵션 반영
 
@@ -95,10 +101,11 @@ echo "$JAVA_HOME"
 The current unit test suite covers local-first domain behavior and backend boundary helpers:
 
 - Auth session/login/refresh/logout/delete-user retry behavior
-- Calendar grid generation, local persistence, sync payloads, and corrupted store quarantine
+- Calendar grid generation, local persistence, sync payloads, corrupted store quarantine, and active shared-space scoping
 - Friend endpoint routing, friend request mutations, and failure messages
-- Map GeoJSON parsing, trip persistence, and image file guards
-- D-Day widget item persistence, render state text, and image file guards
+- Pairing repository endpoint paths and local active shared-space persistence
+- Map GeoJSON parsing, trip persistence, active shared-space scoping, and image file guards
+- D-Day widget item persistence, active shared-space scoping, render state text, and image file guards
 - Core date and endpoint helpers
 
 Remaining gaps require configured Android tooling, emulator/device checks, or backend credentials:
@@ -106,9 +113,21 @@ Remaining gaps require configured Android tooling, emulator/device checks, or ba
 - Compose UI navigation and form interaction tests
 - Native app widget `RemoteViews` instrumentation tests
 - Real image picker URI handling on device/emulator
-- Backend integration for Apple/Kakao auth, calendar sync, and friend mutations
+- Backend integration for Apple/Kakao auth, calendar sync, friend mutations, and shared-space pairing endpoints
+- Shared trip image upload/download backend contract
 - APK install/launch smoke test after `assembleDebug`
+
+## Pairing / Shared Space Scope
+
+Pairing uses the following backend-compatible paths:
+
+- `GET /shared-spaces/active`
+- `POST /shared-spaces/invites`
+- `POST /shared-spaces/invites/{code}/accept`
+- `DELETE /shared-spaces/{id}/members/me`
+
+When an active shared space is cached locally, new Calendar todos/schedules/diaries, Map trip records, and D-Day records default to that `sharedSpaceId`. D-Day selected widget item remains device-local so each phone can choose a different home-screen item.
 
 ## Current Scope
 
-This is a buildable native Android implementation with local-first feature behavior and backend-compatible API boundaries. Production Apple/Kakao login still requires platform app keys, redirect URLs, and console configuration outside this repository.
+This is a buildable native Android implementation with local-first feature behavior and backend-compatible API boundaries. Production Apple/Kakao login and shared media sync still require platform app keys, redirect URLs, backend credentials, and shared media contracts outside this repository.
