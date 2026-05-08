@@ -19,7 +19,7 @@ let package = Package(
     name: "coupleapp_ios",
     dependencies: [
         // Add your own dependencies here:
-         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.18.0"),
+         .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.23.1"),
          .package(url: "https://github.com/realm/realm-swift", from: "10.11.0"),
          .package(url: "https://github.com/kakao/kakao-ios-sdk", from: "2.24.0"),
          .package(url: "https://github.com/Moya/Moya.git", from: "15.0.3")

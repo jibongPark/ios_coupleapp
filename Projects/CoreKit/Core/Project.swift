@@ -5,6 +5,7 @@ let project = Project.configure(
     moduleType: .module(name: "Core"),
     product: .framework,
     dependencies: [
-        .external(name: "ComposableArchitecture")
+        .external(name: "ComposableArchitecture"),
+        .external(name: "Moya")
     ]
 )

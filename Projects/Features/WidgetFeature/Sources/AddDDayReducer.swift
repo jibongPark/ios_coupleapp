@@ -10,7 +10,7 @@ import Foundation
 import ComposableArchitecture
 import Core
 import UIKit
-import SwiftUICore
+import SwiftUI
 import Domain
 import WidgetData
 import WidgetKit

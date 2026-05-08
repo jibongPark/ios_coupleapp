@@ -8,7 +8,7 @@
 
 import Foundation
 import Domain
-import SwiftUICore
+import SwiftUI
 
 final class WidgetDTO {
     

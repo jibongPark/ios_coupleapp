@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import SwiftUICore
+import SwiftUI
 import MapKit
 
 public struct PolygonData: Equatable {
