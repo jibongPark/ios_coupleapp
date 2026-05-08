@@ -12,6 +12,7 @@ import CalendarFeature
 import WidgetFeature
 import LoginFeature
 import FriendFeature
+import SettingFeature
 
 struct AppView: View {
     
@@ -19,6 +20,7 @@ struct AppView: View {
     @Dependency(\.calendarFeature) var calendarFeature
     @Dependency(\.widgetFeature) var widgetFeature
     @Dependency(\.friendFeature) var friendFeature
+    @Dependency(\.settingFeature) var settingFeature
     
     @Bindable var store: StoreOf<AppReducer>
     
@@ -113,6 +115,8 @@ struct AppView: View {
                         AnyView(widgetFeature.makeView())
                     case .friend:
                         AnyView(friendFeature.makeView())
+                    case .setting:
+                        AnyView(settingFeature.makeView())
                     }
                 }
             }
@@ -170,6 +174,14 @@ struct sideBarMenu: View {
                 })
                 .foregroundStyle(Color.mbTextBlack)
             }
+
+            Button(action: {
+                store.send(.destinationChanged(.setting))
+            }, label: {
+                Image(systemName: "gearshape")
+                Text("설정")
+            })
+            .foregroundStyle(Color.mbTextBlack)
             
             Spacer()
             
@@ -370,11 +382,13 @@ extension AppReducer {
     public enum Destination: Equatable, Identifiable {
         case widget
         case friend
+        case setting
         
         var id: String {
             switch self {
             case .widget: return "widget"
             case .friend: return "friend"
+            case .setting: return "setting"
             }
         }
     }
