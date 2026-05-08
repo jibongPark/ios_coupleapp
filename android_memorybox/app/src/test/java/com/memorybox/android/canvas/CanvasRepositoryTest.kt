@@ -56,3 +56,41 @@ class CanvasRepositoryTest {
 
     private fun tempFile(): File = kotlin.io.path.createTempDirectory("canvas-repository-test").toFile().resolve("canvas.json")
 }
+
+class CanvasNetworkBoundaryTest {
+    @Test
+    fun networkTransportUsesSharedSpaceCanvasPaths() {
+        val transport = RecordingCanvasTransport()
+        val repository = LocalCanvasRepository(
+            CanvasJsonStore(kotlin.io.path.createTempDirectory("canvas-network-test").toFile().resolve("canvas.json")),
+            transport = transport,
+        )
+
+        repository.fetchRemoteCanvas("space-1")
+        repository.appendRemoteStroke(CanvasStroke("s1", "c1", "space-1", "me", 1, CanvasTool.Pen, "#000000", 4f, emptyList()))
+        repository.fetchRemoteStrokes("space-1", afterSequence = 1)
+        repository.clearRemoteCanvas("space-1")
+        repository.updateRemoteSnapshot(CanvasSnapshot("snap1", "c1", "space-1", 1, width = 800, height = 800))
+        repository.fetchRemoteSnapshot("space-1")
+
+        assertEquals(
+            listOf(
+                CanvasHttpRequest(CanvasHttpMethod.Get, "/shared-spaces/space-1/canvas"),
+                CanvasHttpRequest(CanvasHttpMethod.Post, "/shared-spaces/space-1/canvas/strokes"),
+                CanvasHttpRequest(CanvasHttpMethod.Get, "/shared-spaces/space-1/canvas/strokes?afterSequence=1"),
+                CanvasHttpRequest(CanvasHttpMethod.Post, "/shared-spaces/space-1/canvas/clear"),
+                CanvasHttpRequest(CanvasHttpMethod.Post, "/shared-spaces/space-1/canvas/snapshot"),
+                CanvasHttpRequest(CanvasHttpMethod.Get, "/shared-spaces/space-1/canvas/snapshot"),
+            ),
+            transport.requests,
+        )
+    }
+
+    private class RecordingCanvasTransport : CanvasTransport {
+        val requests = mutableListOf<CanvasHttpRequest>()
+        override fun request(request: CanvasHttpRequest): CanvasHttpResponse {
+            requests += request
+            return CanvasHttpResponse(503, "")
+        }
+    }
+}

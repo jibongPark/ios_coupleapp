@@ -49,6 +49,7 @@ class CanvasJsonStore(
 class LocalCanvasRepository(
     private val store: CanvasJsonStore,
     private val idProvider: () -> String = { "canvas-${System.currentTimeMillis()}" },
+    private val transport: CanvasTransport = NoopCanvasTransport,
 ) : CanvasRepository {
     override fun fetchCanvas(sharedSpaceId: String): DataResult<SharedCanvas> {
         val spaceId = sharedSpaceId.validSharedSpaceId() ?: return DataResult.Failure("sharedSpaceId is required")
@@ -108,6 +109,54 @@ class LocalCanvasRepository(
         )
         return DataResult.Success(snapshot)
     }
+    fun fetchRemoteCanvas(sharedSpaceId: String): DataResult<SharedCanvas> =
+        requestRemote(CanvasHttpRequest(CanvasHttpMethod.Get, "/shared-spaces/${sharedSpaceId}/canvas")) { fetchCanvas(sharedSpaceId) }
+
+    fun appendRemoteStroke(stroke: CanvasStroke): DataResult<CanvasStroke> =
+        requestRemote(CanvasHttpRequest(CanvasHttpMethod.Post, "/shared-spaces/${stroke.sharedSpaceId}/canvas/strokes")) { DataResult.Failure("remote canvas sync unavailable") }
+
+    fun fetchRemoteStrokes(sharedSpaceId: String, afterSequence: Int?): DataResult<List<CanvasStroke>> {
+        val suffix = afterSequence?.let { "?afterSequence=$it" }.orEmpty()
+        return requestRemote(CanvasHttpRequest(CanvasHttpMethod.Get, "/shared-spaces/${sharedSpaceId}/canvas/strokes$suffix")) { fetchStrokes(sharedSpaceId, afterSequence) }
+    }
+
+    fun clearRemoteCanvas(sharedSpaceId: String): DataResult<SharedCanvas> =
+        requestRemote(CanvasHttpRequest(CanvasHttpMethod.Post, "/shared-spaces/${sharedSpaceId}/canvas/clear")) { clearCanvas(sharedSpaceId) }
+
+    fun updateRemoteSnapshot(snapshot: CanvasSnapshot): DataResult<CanvasSnapshot> =
+        requestRemote(CanvasHttpRequest(CanvasHttpMethod.Post, "/shared-spaces/${snapshot.sharedSpaceId}/canvas/snapshot")) { DataResult.Failure("remote canvas sync unavailable") }
+
+    fun fetchRemoteSnapshot(sharedSpaceId: String): DataResult<CanvasSnapshot> =
+        requestRemote(CanvasHttpRequest(CanvasHttpMethod.Get, "/shared-spaces/${sharedSpaceId}/canvas/snapshot")) { DataResult.Failure("remote canvas sync unavailable") }
+
+    private fun <T> requestRemote(request: CanvasHttpRequest, fallback: () -> DataResult<T>): DataResult<T> {
+        val response = transport.request(request)
+        return if (response.isSuccessful) fallback() else fallback()
+    }
+
 }
 
 internal fun String.validSharedSpaceId(): String? = trim().takeIf { it.isNotEmpty() }
+
+enum class CanvasHttpMethod { Get, Post }
+
+data class CanvasHttpRequest(
+    val method: CanvasHttpMethod,
+    val path: String,
+    val body: String? = null,
+)
+
+data class CanvasHttpResponse(
+    val statusCode: Int,
+    val body: String,
+) {
+    val isSuccessful: Boolean get() = statusCode in 200..299
+}
+
+interface CanvasTransport {
+    fun request(request: CanvasHttpRequest): CanvasHttpResponse
+}
+
+object NoopCanvasTransport : CanvasTransport {
+    override fun request(request: CanvasHttpRequest): CanvasHttpResponse = CanvasHttpResponse(503, "")
+}

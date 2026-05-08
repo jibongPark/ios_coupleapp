@@ -2,6 +2,7 @@ import Foundation
 import ComposableArchitecture
 import CanvasDomain
 import Core
+import Moya
 
 public final class CanvasJsonStore: @unchecked Sendable {
     private let fileURL: URL
@@ -34,6 +35,7 @@ public final class CanvasJsonStore: @unchecked Sendable {
 public final class CanvasRepositoryImpl: CanvasRepository {
     private let store: CanvasJsonStore
     private let idProvider: @Sendable () -> String
+    private lazy var provider = MoyaProvider<CanvasAPI>()
 
     public init(store: CanvasJsonStore = CanvasJsonStore(), idProvider: @escaping @Sendable () -> String = { UUID().uuidString }) {
         self.store = store
@@ -111,6 +113,37 @@ public final class CanvasRepositoryImpl: CanvasRepository {
             }
             try? store.write(snapshot)
             await send(DataResult(isSuccess: true, data: snapshotVO))
+        }
+    }
+
+    public func pollRemoteStrokes(sharedSpaceId: String, afterSequence: Int?) -> Effect<DataResult<[CanvasStrokeVO]>> {
+        guard let sharedSpaceId = valid(sharedSpaceId) else { return failure("sharedSpaceId is required") }
+        guard ConfigManager.shared.hasValidAPIBaseURL else { return failure(ConfigManager.missingAPIBaseURLMessage) }
+        let localProvider = provider
+        return Effect.run { send in
+            let result = await localProvider.request(.strokes(sharedSpaceId: sharedSpaceId, afterSequence: afterSequence))
+            let mapped: DataResult<[CanvasStrokeVO]> = DataResult(result, dtoType: [CanvasStrokeDTO].self) { $0.map { $0.toVO() } }
+            await send(mapped)
+        }
+    }
+
+    public func appendRemoteStroke(_ stroke: CanvasStrokeVO) -> Effect<DataResult<CanvasStrokeVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else { return failure(ConfigManager.missingAPIBaseURLMessage) }
+        let localProvider = provider
+        return Effect.run { send in
+            let result = await localProvider.request(.appendStroke(sharedSpaceId: stroke.sharedSpaceId, stroke: stroke))
+            let mapped: DataResult<CanvasStrokeVO> = DataResult(result, dtoType: CanvasStrokeDTO.self) { $0.toVO() }
+            await send(mapped)
+        }
+    }
+
+    public func updateRemoteSnapshot(_ snapshot: CanvasSnapshotVO) -> Effect<DataResult<CanvasSnapshotVO>> {
+        guard ConfigManager.shared.hasValidAPIBaseURL else { return failure(ConfigManager.missingAPIBaseURLMessage) }
+        let localProvider = provider
+        return Effect.run { send in
+            let result = await localProvider.request(.updateSnapshot(sharedSpaceId: snapshot.sharedSpaceId, snapshot: snapshot))
+            let mapped: DataResult<CanvasSnapshotVO> = DataResult(result, dtoType: CanvasSnapshotDTO.self) { $0.toVO() }
+            await send(mapped)
         }
     }
 
