@@ -40,6 +40,9 @@ import com.memorybox.android.calendar.data.CalendarRepositoryImpl
 import com.memorybox.android.calendar.data.NetworkCalendarServerTransport
 import com.memorybox.android.calendar.data.NoopCalendarServerTransport
 import com.memorybox.android.calendar.ui.CalendarScreen
+import com.memorybox.android.canvas.CanvasJsonStore
+import com.memorybox.android.canvas.CanvasScreen
+import com.memorybox.android.canvas.LocalCanvasRepository
 import com.memorybox.android.core.network.DataResult
 import com.memorybox.android.core.network.MemoryBoxConfig
 import com.memorybox.android.core.network.UrlConnectionMemoryBoxHttpClient
@@ -65,6 +68,7 @@ private enum class SideDestination {
     Home,
     Widget,
     Friend,
+    Canvas,
     Setting,
 }
 
@@ -117,6 +121,11 @@ fun MemoryBoxApp() {
     }
 
     val pairingStore = remember(context) { SharedPreferencesActiveSharedSpaceStore(context) }
+
+    val canvasRepository = remember(context) {
+        LocalCanvasRepository(CanvasJsonStore.appPrivate(context))
+    }
+
     val pairingRepository = remember(activeBaseUrl, session?.accessToken, session?.uid, pairingStore) {
         if (activeBaseUrl.isNotBlank() && session?.accessToken?.isNotBlank() == true) {
             NetworkPairingRepository(
@@ -161,6 +170,10 @@ fun MemoryBoxApp() {
                     },
                     onFriend = {
                         destination = SideDestination.Friend
+                        scope.launch { drawerState.close() }
+                    },
+                    onCanvas = {
+                        destination = SideDestination.Canvas
                         scope.launch { drawerState.close() }
                     },
                     onSetting = {
@@ -227,6 +240,11 @@ fun MemoryBoxApp() {
                     modifier = Modifier.padding(padding),
                     repository = friendRepository,
                     pairingRepository = pairingRepository,
+                )
+                SideDestination.Canvas -> CanvasScreen(
+                    sharedSpaceId = pairingStore.load()?.id,
+                    repository = canvasRepository,
+                    modifier = Modifier.padding(padding),
                 )
                 SideDestination.Setting -> SettingScreen(
                     session = session,
@@ -380,6 +398,7 @@ private fun SideMenu(
     onLogin: () -> Unit,
     onWidget: () -> Unit,
     onFriend: () -> Unit,
+    onCanvas: () -> Unit,
     onSetting: () -> Unit,
     onLogout: () -> Unit,
     onDeleteUser: () -> Unit,
@@ -405,6 +424,9 @@ private fun SideMenu(
         if (session != null) {
             Button(onClick = onFriend, modifier = Modifier.fillMaxWidth()) {
                 Text("친구")
+            }
+            Button(onClick = onCanvas, modifier = Modifier.fillMaxWidth()) {
+                Text("우리 낙서장")
             }
         }
 
