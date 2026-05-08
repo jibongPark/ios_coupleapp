@@ -8,6 +8,7 @@ let project = Project.configure(
         .Core.core,
         .Data.Auth.Data,
         .Domains.Auth.Domain,
+        .external(name: "ComposableArchitecture"),
         .external(name:"KakaoSDKCommon"),
         .external(name:"KakaoSDKAuth"),
         .external(name:"KakaoSDKUser"),

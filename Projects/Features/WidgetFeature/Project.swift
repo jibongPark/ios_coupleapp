@@ -7,7 +7,8 @@ let project = Project.configure(
     dependencies: [
         .Core.core,
         .Modules.domain,
-        .Modules.widgetData
+        .Modules.widgetData,
+        .external(name: "ComposableArchitecture")
     ],
     interfaceDependencies: [
         .Modules.domain
