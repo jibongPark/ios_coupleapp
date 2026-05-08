@@ -11,6 +11,7 @@ let project = Project.configure(
         .Features.Setting.Feature,
         .Features.Login.Feature,
         .Features.Friend.Feature,
+        .Features.Canvas.Feature,
         .Data.Calendar.Data,
         .external(name: "RealmSwift"),
         .external(name: "Realm"),

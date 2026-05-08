@@ -10,6 +10,7 @@ public extension TargetDependency {
         public struct Widget {}
         public struct Map {}
         public struct Calendar {}
+        public struct Canvas {}
     }
 }
 
@@ -57,6 +58,14 @@ public extension TargetDependency.Features.Login {
 public extension TargetDependency.Features.Friend {
     static let name = "Friend"
     
+    static let Feature = TargetDependency.Features.project(name: "\(name)Feature")
+    static let Interface = TargetDependency.project(target: "\(name)FeatureInterface", path: .relativeToFeature("\(name)Feature"))
+}
+
+
+public extension TargetDependency.Features.Canvas {
+    static let name = "Canvas"
+
     static let Feature = TargetDependency.Features.project(name: "\(name)Feature")
     static let Interface = TargetDependency.project(target: "\(name)FeatureInterface", path: .relativeToFeature("\(name)Feature"))
 }

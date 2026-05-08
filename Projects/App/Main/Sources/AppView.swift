@@ -13,6 +13,7 @@ import WidgetFeature
 import LoginFeature
 import FriendFeature
 import SettingFeature
+import CanvasFeature
 
 struct AppView: View {
     
@@ -21,6 +22,7 @@ struct AppView: View {
     @Dependency(\.widgetFeature) var widgetFeature
     @Dependency(\.friendFeature) var friendFeature
     @Dependency(\.settingFeature) var settingFeature
+    @Dependency(\.canvasFeature) var canvasFeature
     
     @Bindable var store: StoreOf<AppReducer>
     
@@ -117,6 +119,8 @@ struct AppView: View {
                         AnyView(friendFeature.makeView())
                     case .setting:
                         AnyView(settingFeature.makeView())
+                    case .canvas:
+                        AnyView(canvasFeature.makeView())
                     }
                 }
             }
@@ -174,6 +178,14 @@ struct sideBarMenu: View {
                 })
                 .foregroundStyle(Color.mbTextBlack)
             }
+
+            Button(action: {
+                store.send(.destinationChanged(.canvas))
+            }, label: {
+                Image(systemName: "pencil.and.scribble")
+                Text("우리 낙서장")
+            })
+            .foregroundStyle(Color.mbTextBlack)
 
             Button(action: {
                 store.send(.destinationChanged(.setting))
@@ -383,12 +395,14 @@ extension AppReducer {
         case widget
         case friend
         case setting
+        case canvas
         
         var id: String {
             switch self {
             case .widget: return "widget"
             case .friend: return "friend"
             case .setting: return "setting"
+            case .canvas: return "canvas"
             }
         }
     }
