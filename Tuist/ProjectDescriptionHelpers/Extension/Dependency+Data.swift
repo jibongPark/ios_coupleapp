@@ -9,6 +9,7 @@ public extension TargetDependency {
         public struct Calendar {}
         public struct Map {}
         public struct Widget {}
+        public struct Canvas {}
     }
 }
 
@@ -53,5 +54,12 @@ public extension TargetDependency.Data.Common {
 public extension TargetDependency.Data.Friend {
     static let name = "Friend"
     
+    static let Data = TargetDependency.Data.project(name: "\(name)Data")
+}
+
+
+public extension TargetDependency.Data.Canvas {
+    static let name = "Canvas"
+
     static let Data = TargetDependency.Data.project(name: "\(name)Data")
 }
