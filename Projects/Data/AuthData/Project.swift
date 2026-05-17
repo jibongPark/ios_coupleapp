@@ -7,6 +7,8 @@ let project = Project.configure(
     dependencies: [
         .Domains.Auth.Domain,
         .Core.core,
+        .Data.Common.Data,
+        .external(name: "ComposableArchitecture"),
         .external(name: "Moya")
     ]
 )

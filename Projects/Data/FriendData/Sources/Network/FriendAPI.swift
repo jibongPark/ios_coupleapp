@@ -8,6 +8,7 @@
 
 import Moya
 import Foundation
+import Core
 
 enum FriendAPI {
     case friends
@@ -16,6 +17,10 @@ enum FriendAPI {
     case request(uid: String)
     case acceptFriend(friendId: String)
     case deleteFriend(friendId: String)
+    case activeSharedSpace
+    case createPairingInvite
+    case acceptPairingInvite(code: String)
+    case leaveSharedSpace(id: String)
 }
 
 
@@ -25,13 +30,7 @@ extension FriendAPI: TargetType {
     }
     
     var baseURL: URL {
-        let url = Bundle.main.object(forInfoDictionaryKey:"BASE_URL")
-        
-        if let urlString = url as? String {
-            return URL(string: urlString)!
-        } else {
-            fatalError("URL String not found")
-        }
+        ConfigManager.shared.apiBaseURL ?? ConfigManager.fallbackBaseURL
     }
     
     var path: String {
@@ -48,6 +47,14 @@ extension FriendAPI: TargetType {
             return "/friend/accept/\(friendId)"
         case .deleteFriend(friendId: let friendId):
             return "/friend/\(friendId)"
+        case .activeSharedSpace:
+            return "/shared-spaces/active"
+        case .createPairingInvite:
+            return "/shared-spaces/invites"
+        case .acceptPairingInvite(code: let code):
+            return "/shared-spaces/invites/\(code)/accept"
+        case .leaveSharedSpace(id: let id):
+            return "/shared-spaces/\(id)/members/me"
         }
     }
     
@@ -65,6 +72,14 @@ extension FriendAPI: TargetType {
             return .post
         case .deleteFriend(friendId: _):
             return .delete
+        case .activeSharedSpace:
+            return .get
+        case .createPairingInvite:
+            return .post
+        case .acceptPairingInvite(code: _):
+            return .post
+        case .leaveSharedSpace(id: _):
+            return .delete
         }
     }
     
@@ -81,6 +96,14 @@ extension FriendAPI: TargetType {
         case .acceptFriend:
             return .requestPlain
         case .deleteFriend:
+            return .requestPlain
+        case .activeSharedSpace:
+            return .requestPlain
+        case .createPairingInvite:
+            return .requestPlain
+        case .acceptPairingInvite:
+            return .requestPlain
+        case .leaveSharedSpace:
             return .requestPlain
         }
     }

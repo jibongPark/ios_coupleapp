@@ -53,6 +53,10 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
     public func loginUser(_ user: LoginVO) -> Effect<DataResult<String>> {
         
         return Effect.run { [self] send async in
+            guard ConfigManager.shared.hasValidAPIBaseURL else {
+                await send(DataResult(message: ConfigManager.missingAPIBaseURLMessage))
+                return
+            }
             
             let result = await provider.request(.login(type: user.type, jwt: user.token, name: user.name))
             
@@ -130,6 +134,10 @@ public final class AuthRepositoryImpl: AuthRepository, @unchecked Sendable {
     public func deleteUser() -> Effect<DataResult<String>> {
         
         return Effect.run { [self] send async in
+            guard ConfigManager.shared.hasValidAPIBaseURL else {
+                await send(DataResult(message: ConfigManager.missingAPIBaseURLMessage))
+                return
+            }
             
             let result = await provider.request(.deleteUser)
             

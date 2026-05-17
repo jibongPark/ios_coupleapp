@@ -5,6 +5,7 @@ let project = Project.configure(
     moduleType: .feature(name: "Setting", type: .micro),
     product: .framework,
     dependencies: [
-        .Core.core
+        .Core.core,
+        .external(name: "ComposableArchitecture")
     ]
 )

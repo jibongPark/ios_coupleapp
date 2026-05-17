@@ -19,6 +19,7 @@ data class TodoDto(
     val isDone: Boolean = false,
     val color: Int = 0x0000FF,
     val shared: List<String> = emptyList(),
+    val sharedSpaceId: String? = null,
     val createdAt: String = "",
     val updatedAt: String = "",
 )
@@ -33,6 +34,7 @@ data class ScheduleDto(
     val memo: String = "",
     val color: Int = 0x0000FF,
     val shared: List<String> = emptyList(),
+    val sharedSpaceId: String? = null,
     val createdAt: String = "",
     val updatedAt: String = "",
 )
@@ -44,6 +46,7 @@ data class DiaryDto(
     val date: String,
     val content: String = "",
     val shared: List<String> = emptyList(),
+    val sharedSpaceId: String? = null,
     val createdAt: String = "",
     val updatedAt: String = "",
 )

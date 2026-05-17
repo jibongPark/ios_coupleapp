@@ -156,6 +156,7 @@ class CalendarRepositoryImpl(
     private val transport: CalendarServerTransport = NoopCalendarServerTransport,
     private val idProvider: () -> String = ::localId,
     private val clock: Clock = Clock.systemUTC(),
+    private val activeSharedSpaceIdProvider: () -> String? = { null },
 ) : CalendarRepository {
     override fun fetchVisibleGrid(
         monthDate: LocalDate,
@@ -176,6 +177,8 @@ class CalendarRepositoryImpl(
     override fun updateTodo(todo: Todo): Todo {
         val now = nowString()
         val id = todo.id.ifBlank(idProvider)
+        val sharedSpaceId = todo.sharedSpaceId ?: activeSharedSpaceIdProvider()?.takeIf { it.isNotBlank() }
+        val shared = todo.shared.ifEmpty { sharedSpaceId?.let(::listOf).orEmpty() }
         val stored = StoredTodo(
             id = id,
             title = todo.title,
@@ -183,34 +186,40 @@ class CalendarRepositoryImpl(
             endDate = todo.endDate.toServerDate(),
             isDone = todo.isDone,
             color = todo.color,
-            shared = todo.shared,
+            shared = shared,
+            sharedSpaceId = sharedSpaceId,
             createdAt = existingTodo(id)?.createdAt ?: now,
             updatedAt = now,
             pendingSync = true,
         )
         store.write(store.read().replaceTodo(stored))
-        return todo.copy(id = id)
+        return todo.copy(id = id, shared = shared, sharedSpaceId = sharedSpaceId)
     }
 
     override fun updateDiary(diary: Diary): Diary {
         val now = nowString()
         val id = diary.id.ifBlank(idProvider)
+        val sharedSpaceId = diary.sharedSpaceId ?: activeSharedSpaceIdProvider()?.takeIf { it.isNotBlank() }
+        val shared = diary.shared.ifEmpty { sharedSpaceId?.let(::listOf).orEmpty() }
         val stored = StoredDiary(
             id = id,
             date = diary.date.toServerDate(),
             content = diary.content,
-            shared = diary.shared,
+            shared = shared,
+            sharedSpaceId = sharedSpaceId,
             createdAt = existingDiary(id)?.createdAt ?: now,
             updatedAt = now,
             pendingSync = true,
         )
         store.write(store.read().replaceDiary(stored))
-        return diary.copy(id = id)
+        return diary.copy(id = id, shared = shared, sharedSpaceId = sharedSpaceId)
     }
 
     override fun updateSchedule(schedule: Schedule): Schedule {
         val now = nowString()
         val id = schedule.id.ifBlank(idProvider)
+        val sharedSpaceId = schedule.sharedSpaceId ?: activeSharedSpaceIdProvider()?.takeIf { it.isNotBlank() }
+        val shared = schedule.shared.ifEmpty { sharedSpaceId?.let(::listOf).orEmpty() }
         val stored = StoredSchedule(
             id = id,
             title = schedule.title,
@@ -218,13 +227,14 @@ class CalendarRepositoryImpl(
             endDate = schedule.endDate.toServerDate(),
             memo = schedule.memo,
             color = schedule.color,
-            shared = schedule.shared,
+            shared = shared,
+            sharedSpaceId = sharedSpaceId,
             createdAt = existingSchedule(id)?.createdAt ?: now,
             updatedAt = now,
             pendingSync = true,
         )
         store.write(store.read().replaceSchedule(stored))
-        return schedule.copy(id = id)
+        return schedule.copy(id = id, shared = shared, sharedSpaceId = sharedSpaceId)
     }
 
     override fun deleteTodo(id: String) {
@@ -379,6 +389,7 @@ data class CalendarTodoPayload(
     val memo: String,
     val color: Int,
     val shared: List<String>,
+    val sharedSpaceId: String? = null,
 )
 
 @Serializable
@@ -390,6 +401,7 @@ data class CalendarSchedulePayload(
     val memo: String,
     val color: Int,
     val shared: List<String>,
+    val sharedSpaceId: String? = null,
 )
 
 @Serializable
@@ -398,6 +410,7 @@ data class CalendarDiaryPayload(
     val date: String,
     val content: String,
     val shared: List<String>,
+    val sharedSpaceId: String? = null,
 )
 
 @Serializable
@@ -417,6 +430,7 @@ data class StoredTodo(
     val isDone: Boolean,
     val color: Int,
     val shared: List<String>,
+    val sharedSpaceId: String? = null,
     val createdAt: String,
     val updatedAt: String,
     val pendingSync: Boolean = false,
@@ -431,6 +445,7 @@ data class StoredSchedule(
     val memo: String,
     val color: Int,
     val shared: List<String>,
+    val sharedSpaceId: String? = null,
     val createdAt: String,
     val updatedAt: String,
     val pendingSync: Boolean = false,
@@ -442,6 +457,7 @@ data class StoredDiary(
     val date: String,
     val content: String,
     val shared: List<String>,
+    val sharedSpaceId: String? = null,
     val createdAt: String,
     val updatedAt: String,
     val pendingSync: Boolean = false,
@@ -462,6 +478,7 @@ private fun StoredTodo.toDomain(): Todo {
         isDone = isDone,
         color = color,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 
@@ -474,6 +491,7 @@ private fun StoredSchedule.toDomain(): Schedule {
         memo = memo,
         color = color,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 
@@ -483,6 +501,7 @@ private fun StoredDiary.toDomain(): Diary {
         date = date.toLocalDateFromServer(),
         content = content,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 
@@ -495,6 +514,7 @@ private fun TodoDto.toStored(now: String): StoredTodo {
         isDone = isDone,
         color = color,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
         createdAt = createdAt.ifBlank { now },
         updatedAt = updatedAt.ifBlank { now },
         pendingSync = false,
@@ -510,6 +530,7 @@ private fun ScheduleDto.toStored(now: String): StoredSchedule {
         memo = memo,
         color = color,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
         createdAt = createdAt.ifBlank { now },
         updatedAt = updatedAt.ifBlank { now },
         pendingSync = false,
@@ -522,6 +543,7 @@ private fun DiaryDto.toStored(now: String): StoredDiary {
         date = date.toLocalDateFromServer().toServerDate(),
         content = content,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
         createdAt = createdAt.ifBlank { now },
         updatedAt = updatedAt.ifBlank { now },
         pendingSync = false,
@@ -537,6 +559,7 @@ private fun StoredTodo.toPayload(): CalendarTodoPayload {
         memo = memo,
         color = color,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 
@@ -549,6 +572,7 @@ private fun StoredSchedule.toPayload(): CalendarSchedulePayload {
         memo = memo,
         color = color,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 
@@ -558,6 +582,7 @@ private fun StoredDiary.toPayload(): CalendarDiaryPayload {
         date = date,
         content = content,
         shared = shared,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 

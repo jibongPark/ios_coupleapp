@@ -57,6 +57,19 @@ class TripStoreTest {
     }
 
     @Test
+    fun upsertAppliesActiveSharedSpaceWhenTripHasNoExplicitSharedSpace() {
+        val file = temporaryFolder.newFile("trips-shared.json")
+        val store = TripStore(file, activeSharedSpaceIdProvider = { "space-1" })
+
+        store.upsert(trip(11110, "jongno.jpg"))
+        store.upsert(trip(26110, "jung.jpg").copy(sharedSpaceId = "space-explicit"))
+
+        assertEquals("space-1", TripStore(file).load(11110)?.sharedSpaceId)
+        assertEquals("space-explicit", TripStore(file).load(26110)?.sharedSpaceId)
+    }
+
+
+    @Test
     fun corruptStoreReadQuarantinesRawFileBeforeReturningEmptyTrips() {
         val file = temporaryFolder.newFile("trips-corrupt.json")
         file.writeText("{not-json")

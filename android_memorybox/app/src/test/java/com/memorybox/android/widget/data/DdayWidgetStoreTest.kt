@@ -91,4 +91,14 @@ class DdayWidgetStoreTest {
         assertEquals(false, restored.single().isShowTitle)
         assertEquals(WidgetAlign.TopRight, restored.single().titleAlignment)
     }
+
+    @Test
+    fun upsertAppliesActiveSharedSpaceButSelectionRemainsLocal() {
+        val item = DdayWidgetItem(id = "anniversary", title = "Anniversary")
+
+        val state = DdayWidgetStore.upsert(DdayWidgetStore.State(), item, activeSharedSpaceId = "space-1")
+
+        assertEquals("space-1", state.items.single().sharedSpaceId)
+        assertEquals("anniversary", state.selectedId)
+    }
 }

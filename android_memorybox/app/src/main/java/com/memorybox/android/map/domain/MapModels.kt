@@ -23,4 +23,5 @@ data class Trip(
     val scale: Float = 1f,
     val centerX: Float = 0f,
     val centerY: Float = 0f,
+    val sharedSpaceId: String? = null,
 )

@@ -47,6 +47,8 @@ struct FriendView: View {
                         
                     }
                     
+                    PairingSection(store: store)
+
                     HStack(spacing: 0) {
                         
                         TextField(text: $store.friendId, label: {
@@ -98,6 +100,80 @@ struct FriendView: View {
         }
     }
     
+    private struct PairingSection: View {
+        var store: StoreOf<FriendReducer>
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("페어링")
+                    .font(.headline)
+                    .foregroundStyle(Color.mbTextBlack)
+
+                if let sharedSpace = store.activeSharedSpace {
+                    Text(pairingDescription(sharedSpace))
+                        .foregroundStyle(Color.mbTextBlack)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button(action: {
+                        store.send(.leaveSharedSpace)
+                    }, label: {
+                        Text(store.isPairingLoading ? "해제 중..." : "페어링 해제")
+                            .frame(maxWidth: .infinity)
+                    })
+                    .disabled(store.isPairingLoading)
+                } else {
+                    if let invite = store.pairingInvite {
+                        Text("초대 코드: \(invite.code)")
+                            .foregroundStyle(Color.mbPrimaryTerracotta)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    Button(action: {
+                        store.send(.createPairingInvite)
+                    }, label: {
+                        Text(store.isPairingLoading ? "생성 중..." : "초대 코드 생성")
+                            .frame(maxWidth: .infinity)
+                    })
+                    .disabled(store.isPairingLoading)
+
+                    HStack(spacing: 0) {
+                        TextField(text: Binding(
+                            get: { store.pairingCode },
+                            set: { store.send(.pairingCodeChanged($0)) }
+                        ), label: {
+                            Text("페어링 코드를 입력해주세요.")
+                        })
+                        .inputStyle()
+
+                        Spacer(minLength: 0)
+
+                        ImageButton("person.2.fill") {
+                            store.send(.acceptPairingInvite)
+                        }
+                        .frame(width: 24, height: 24)
+                        .padding(10)
+                        .contentShape(Rectangle())
+                        .disabled(store.isPairingLoading)
+                    }
+                }
+            }
+            .padding(10)
+            .backgroundStyle()
+        }
+
+        private func pairingDescription(_ sharedSpace: SharedSpaceVO) -> String {
+            if let partner = sharedSpace.members.first(where: { $0.userId != store.userId }) {
+                return "\(partner.name)님과 페어링 중"
+            }
+
+            if let name = sharedSpace.name, !name.isEmpty {
+                return "\(name) 공유 공간에 연결됨"
+            }
+
+            return "공유 공간에 연결됨"
+        }
+    }
+
     private struct FriendRequestView: View {
         var store: StoreOf<FriendReducer>
         let isMyRequest: Bool

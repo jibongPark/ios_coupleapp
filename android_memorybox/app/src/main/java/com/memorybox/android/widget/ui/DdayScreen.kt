@@ -198,6 +198,9 @@ fun DdayScreen(modifier: Modifier = Modifier) {
                 val oldImagePath = editingId?.let { id ->
                     items.firstOrNull { it.id == id }?.imagePath
                 }
+                val existingSharedSpaceId = editingId?.let { id ->
+                    items.firstOrNull { it.id == id }?.sharedSpaceId
+                }
                 val item = DdayWidgetItem(
                     id = editingId ?: UUID.randomUUID().toString(),
                     title = title,
@@ -207,6 +210,7 @@ fun DdayScreen(modifier: Modifier = Modifier) {
                     dateAlignment = dateAlignment,
                     isShowTitle = isShowTitle,
                     titleAlignment = titleAlignment,
+                    sharedSpaceId = existingSharedSpaceId,
                 )
                 DdayWidgetStore.upsert(context, item)
                 if (
@@ -228,6 +232,10 @@ fun DdayScreen(modifier: Modifier = Modifier) {
             TextButton(onClick = { clearForm() }) {
                 Text("수정 취소")
             }
+        }
+
+        if (items.isEmpty()) {
+            Text("등록된 D-Day가 없습니다. 첫 기념일을 추가해보세요.", style = MaterialTheme.typography.bodyMedium)
         }
 
         items.forEach { item ->

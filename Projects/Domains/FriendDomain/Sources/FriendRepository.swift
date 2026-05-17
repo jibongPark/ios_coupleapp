@@ -17,4 +17,9 @@ public protocol FriendRepository {
     func acceptFriend(_ id: String) -> Effect<DataResult<FriendVO>>
     func rejectFriend(_ id: String) -> Effect<DataResult<FriendVO>>
     func deleteFriend(_ id: String) -> Effect<DataResult<FriendVO>>
+
+    func fetchActiveSharedSpace() -> Effect<DataResult<SharedSpaceVO?>>
+    func createPairingInvite() -> Effect<DataResult<PairingInviteVO>>
+    func acceptPairingInvite(_ code: String) -> Effect<DataResult<SharedSpaceVO>>
+    func leaveSharedSpace(_ id: String) -> Effect<DataResult<SharedSpaceVO>>
 }

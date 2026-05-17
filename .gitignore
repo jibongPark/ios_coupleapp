@@ -71,3 +71,6 @@ Tuist/.build
 
 ### Local conversion experiments ###
 flutter_memorybox/
+
+# Local worktrees
+.worktrees/

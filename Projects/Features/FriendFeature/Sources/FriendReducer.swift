@@ -31,6 +31,11 @@ struct FriendReducer {
         
         var friends: [FriendVO] = []
         var requests: [FriendRequestVO] = []
+
+        var activeSharedSpace: SharedSpaceVO?
+        var pairingInvite: PairingInviteVO?
+        var pairingCode: String = ""
+        var isPairingLoading: Bool = false
         
         var friendId: String = ""
     }
@@ -54,6 +59,16 @@ struct FriendReducer {
         case didAcceptFriend(FriendVO)
         case rejectFriend(String)
         case didRejectFriend(FriendVO)
+
+        case fetchActiveSharedSpace
+        case didFetchActiveSharedSpace(SharedSpaceVO?)
+        case createPairingInvite
+        case didCreatePairingInvite(PairingInviteVO)
+        case pairingCodeChanged(String)
+        case acceptPairingInvite
+        case didAcceptPairingInvite(SharedSpaceVO)
+        case leaveSharedSpace
+        case didLeaveSharedSpace
         
         case copyMyId
         
@@ -172,11 +187,81 @@ struct FriendReducer {
             case .didRejectFriend(let friend):
                 state.requests = state.requests.filter { $0.senderId != friend.id }
                 return .none
+
+            case .fetchActiveSharedSpace:
+                state.isPairingLoading = true
+                return friendRepository.fetchActiveSharedSpace().map { @Sendable resp in
+                    if resp.isSuccess {
+                        return .didFetchActiveSharedSpace(resp.data ?? nil)
+                    }
+                    return .showAlert(resp.message)
+                }
+
+            case .didFetchActiveSharedSpace(let sharedSpace):
+                state.activeSharedSpace = sharedSpace
+                state.isPairingLoading = false
+                return .none
+
+            case .createPairingInvite:
+                state.isPairingLoading = true
+                return friendRepository.createPairingInvite().map { @Sendable resp in
+                    if resp.isSuccess, let invite = resp.data {
+                        return .didCreatePairingInvite(invite)
+                    }
+                    return .showAlert(resp.message)
+                }
+
+            case .didCreatePairingInvite(let invite):
+                state.pairingInvite = invite
+                state.isPairingLoading = false
+                return .none
+
+            case .pairingCodeChanged(let code):
+                state.pairingCode = code
+                return .none
+
+            case .acceptPairingInvite:
+                let code = state.pairingCode.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !code.isEmpty else { return .send(.showAlert("페어링 코드를 입력해주세요.")) }
+
+                state.isPairingLoading = true
+                return friendRepository.acceptPairingInvite(code).map { @Sendable resp in
+                    if resp.isSuccess, let sharedSpace = resp.data {
+                        return .didAcceptPairingInvite(sharedSpace)
+                    }
+                    return .showAlert(resp.message)
+                }
+
+            case .didAcceptPairingInvite(let sharedSpace):
+                state.activeSharedSpace = sharedSpace
+                state.pairingCode = ""
+                state.pairingInvite = nil
+                state.isPairingLoading = false
+                return .none
+
+            case .leaveSharedSpace:
+                guard let id = state.activeSharedSpace?.id else { return .none }
+
+                state.isPairingLoading = true
+                return friendRepository.leaveSharedSpace(id).map { @Sendable resp in
+                    if resp.isSuccess {
+                        return .didLeaveSharedSpace
+                    }
+                    return .showAlert(resp.message)
+                }
+
+            case .didLeaveSharedSpace:
+                state.activeSharedSpace = nil
+                state.pairingInvite = nil
+                state.isPairingLoading = false
+                return .none
+
             case .copyMyId:
                 UIPasteboard.general.string = authManager.uid
                 return .send(.showAlert("id가 복사되었습니다."))
                 
             case .showAlert(let message):
+                state.isPairingLoading = false
                 
                 state.alert = AlertState {
                     TextState(message)
@@ -197,7 +282,8 @@ struct FriendReducer {
                 
                 return .merge([
                     .send(.fetchFriends),
-                    .send(.fetchFriendRequests)
+                    .send(.fetchFriendRequests),
+                    .send(.fetchActiveSharedSpace)
                 ])
             }
         }

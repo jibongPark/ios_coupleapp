@@ -7,6 +7,7 @@ let project = Project.configure(
     dependencies: [
         .Core.core,
         .Data.Friend.Data,
-        .Domains.Friend.Domain
+        .Domains.Friend.Domain,
+        .external(name: "ComposableArchitecture")
     ]
 )

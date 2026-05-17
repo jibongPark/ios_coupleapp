@@ -1,5 +1,6 @@
 package com.memorybox.android.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
@@ -38,6 +40,9 @@ import com.memorybox.android.calendar.data.CalendarRepositoryImpl
 import com.memorybox.android.calendar.data.NetworkCalendarServerTransport
 import com.memorybox.android.calendar.data.NoopCalendarServerTransport
 import com.memorybox.android.calendar.ui.CalendarScreen
+import com.memorybox.android.canvas.CanvasJsonStore
+import com.memorybox.android.canvas.CanvasScreen
+import com.memorybox.android.canvas.LocalCanvasRepository
 import com.memorybox.android.core.network.DataResult
 import com.memorybox.android.core.network.MemoryBoxConfig
 import com.memorybox.android.core.network.UrlConnectionMemoryBoxHttpClient
@@ -46,6 +51,9 @@ import com.memorybox.android.friend.HttpUrlConnectionFriendTransport
 import com.memorybox.android.friend.LocalFriendRepository
 import com.memorybox.android.friend.NetworkFriendRepository
 import com.memorybox.android.map.ui.MapScreen
+import com.memorybox.android.pairing.LocalPairingRepository
+import com.memorybox.android.pairing.NetworkPairingRepository
+import com.memorybox.android.pairing.SharedPreferencesActiveSharedSpaceStore
 import com.memorybox.android.widget.ui.DdayScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,6 +68,8 @@ private enum class SideDestination {
     Home,
     Widget,
     Friend,
+    Canvas,
+    Setting,
 }
 
 @Composable
@@ -92,6 +102,7 @@ fun MemoryBoxApp() {
         CalendarRepositoryImpl(
             store = CalendarJsonStore.appPrivate(context),
             transport = transport,
+            activeSharedSpaceIdProvider = { SharedPreferencesActiveSharedSpaceStore(context).load()?.id },
         )
     }
 
@@ -106,6 +117,30 @@ fun MemoryBoxApp() {
             )
         } else {
             LocalFriendRepository(session?.uid.orEmpty())
+        }
+    }
+
+    val pairingStore = remember(context) { SharedPreferencesActiveSharedSpaceStore(context) }
+
+    val canvasRepository = remember(context) {
+        LocalCanvasRepository(CanvasJsonStore.appPrivate(context))
+    }
+
+    val pairingRepository = remember(activeBaseUrl, session?.accessToken, session?.uid, pairingStore) {
+        if (activeBaseUrl.isNotBlank() && session?.accessToken?.isNotBlank() == true) {
+            NetworkPairingRepository(
+                transport = HttpUrlConnectionFriendTransport(
+                    baseUrl = activeBaseUrl,
+                    bearerTokenProvider = { sessionStore.load()?.accessToken },
+                    refreshTokenProvider = { refreshAccessToken(activeBaseUrl, sessionStore) },
+                ),
+                store = pairingStore,
+            )
+        } else {
+            LocalPairingRepository(
+                userId = session?.uid.orEmpty(),
+                store = pairingStore,
+            )
         }
     }
 
@@ -135,6 +170,14 @@ fun MemoryBoxApp() {
                     },
                     onFriend = {
                         destination = SideDestination.Friend
+                        scope.launch { drawerState.close() }
+                    },
+                    onCanvas = {
+                        destination = SideDestination.Canvas
+                        scope.launch { drawerState.close() }
+                    },
+                    onSetting = {
+                        destination = SideDestination.Setting
                         scope.launch { drawerState.close() }
                     },
                     onLogout = {
@@ -196,6 +239,17 @@ fun MemoryBoxApp() {
                     userId = session?.uid.orEmpty(),
                     modifier = Modifier.padding(padding),
                     repository = friendRepository,
+                    pairingRepository = pairingRepository,
+                )
+                SideDestination.Canvas -> CanvasScreen(
+                    sharedSpaceId = pairingStore.load()?.id,
+                    repository = canvasRepository,
+                    modifier = Modifier.padding(padding),
+                )
+                SideDestination.Setting -> SettingScreen(
+                    session = session,
+                    activeBaseUrl = activeBaseUrl,
+                    modifier = Modifier.padding(padding),
                 )
             }
         }
@@ -328,6 +382,7 @@ private fun syncCalendarAfterLogin(
     if (baseUrl.isBlank()) return
     val repository = CalendarRepositoryImpl(
         store = CalendarJsonStore.appPrivate(context),
+        activeSharedSpaceIdProvider = { SharedPreferencesActiveSharedSpaceStore(context).load()?.id },
         transport = NetworkCalendarServerTransport(
             client = UrlConnectionMemoryBoxHttpClient(MemoryBoxConfig(baseUrl)),
             accessTokenProvider = { sessionStore.load()?.accessToken },
@@ -343,10 +398,15 @@ private fun SideMenu(
     onLogin: () -> Unit,
     onWidget: () -> Unit,
     onFriend: () -> Unit,
+    onCanvas: () -> Unit,
+    onSetting: () -> Unit,
     onLogout: () -> Unit,
     onDeleteUser: () -> Unit,
 ) {
-    Column(Modifier.padding(20.dp)) {
+    Column(
+        modifier = Modifier.padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         if (session == null) {
             Button(onClick = onLogin, modifier = Modifier.fillMaxWidth()) {
                 Text("로그인")
@@ -354,6 +414,8 @@ private fun SideMenu(
         } else {
             Text("${session.userName} 님 환영합니다.")
         }
+
+        HorizontalDivider()
 
         Button(onClick = onWidget, modifier = Modifier.fillMaxWidth()) {
             Text("위젯")
@@ -363,6 +425,16 @@ private fun SideMenu(
             Button(onClick = onFriend, modifier = Modifier.fillMaxWidth()) {
                 Text("친구")
             }
+            Button(onClick = onCanvas, modifier = Modifier.fillMaxWidth()) {
+                Text("우리 낙서장")
+            }
+        }
+
+        Button(onClick = onSetting, modifier = Modifier.fillMaxWidth()) {
+            Text("설정")
+        }
+
+        if (session != null) {
             Button(onClick = onDeleteUser, modifier = Modifier.fillMaxWidth()) {
                 Text("회원탈퇴")
             }
@@ -370,6 +442,29 @@ private fun SideMenu(
                 Text("로그아웃")
             }
         }
+    }
+}
+
+@Composable
+private fun SettingScreen(
+    session: UserSession?,
+    activeBaseUrl: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text("설정", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+        Text("앱 정보", style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+        Text("앱 이름: MemoryBox")
+        Text("빌드 타입: ${BuildConfig.BUILD_TYPE}")
+        Text("서버 주소: ${activeBaseUrl.ifBlank { "설정되지 않음" }}")
+
+        HorizontalDivider()
+
+        Text("계정", style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+        Text(session?.userName?.let { "$it 님으로 로그인됨" } ?: "로그인되어 있지 않습니다.")
     }
 }
 

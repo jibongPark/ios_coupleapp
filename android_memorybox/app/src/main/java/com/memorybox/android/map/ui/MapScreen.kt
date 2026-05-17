@@ -71,6 +71,7 @@ fun MapScreen(modifier: Modifier = Modifier) {
             scale = trip?.scale ?: 1f,
             centerX = trip?.centerX ?: 0f,
             centerY = trip?.centerY ?: 0f,
+            sharedSpaceId = trip?.sharedSpaceId,
         )
         imageError = null
     }
@@ -124,11 +125,12 @@ fun MapScreen(modifier: Modifier = Modifier) {
             .padding(12.dp),
     ) {
         Text("여행지도", style = MaterialTheme.typography.titleLarge)
+        Text("지역을 선택해 여행 기록을 남겨보세요.", style = MaterialTheme.typography.bodyMedium)
         Box(Modifier.fillMaxSize()) {
             if (error != null) {
                 Text(error.orEmpty())
             } else if (polygons.isEmpty()) {
-                Text("Loading GeoJSON...")
+                Text("지도 데이터를 불러오는 중입니다...")
             } else {
                 SigunguCanvas(
                     polygons = polygons,
@@ -380,6 +382,7 @@ private data class TripEditorState(
     val scale: Float,
     val centerX: Float,
     val centerY: Float,
+    val sharedSpaceId: String? = null,
     val newImages: List<String> = emptyList(),
     val removedImages: List<String> = emptyList(),
 ) {
@@ -392,6 +395,7 @@ private data class TripEditorState(
         scale = scale,
         centerX = centerX,
         centerY = centerY,
+        sharedSpaceId = sharedSpaceId,
     )
 }
 

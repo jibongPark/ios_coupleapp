@@ -18,6 +18,7 @@ import WidgetFeature
 struct WidgetEntry: TimelineEntry {
     let date: Date
     let widgetVO: WidgetVO?
+    let canvasSnapshotPath: String?
 }
 
 struct WidgetProvider: AppIntentTimelineProvider {
@@ -25,30 +26,30 @@ struct WidgetProvider: AppIntentTimelineProvider {
     @Dependency(\.widgetRepository) var repository
     
     func placeholder(in context: Context) -> WidgetEntry {
-        WidgetEntry(date: Date(), widgetVO: nil)
+        WidgetEntry(date: Date(), widgetVO: nil, canvasSnapshotPath: LiveCanvasSnapshotReader.latestSnapshotPath())
     }
     
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> WidgetEntry {
         guard let selectedEntity = configuration.selectedItem else {
-            return WidgetEntry(date: Date(), widgetVO: nil)
+            return WidgetEntry(date: Date(), widgetVO: nil, canvasSnapshotPath: LiveCanvasSnapshotReader.latestSnapshotPath())
         }
         
         let all = repository.fetchWidget()
         let selectedVO = all.first(where: { $0.id == selectedEntity.id })
         
-        return WidgetEntry(date: Date(), widgetVO: selectedVO)
+        return WidgetEntry(date: Date(), widgetVO: selectedVO, canvasSnapshotPath: LiveCanvasSnapshotReader.latestSnapshotPath())
     }
     
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<WidgetEntry> {
         
         guard let selected = configuration.selectedItem else {
-            return Timeline(entries: [WidgetEntry(date: .now, widgetVO: nil)], policy: .atEnd)
+            return Timeline(entries: [WidgetEntry(date: .now, widgetVO: nil, canvasSnapshotPath: LiveCanvasSnapshotReader.latestSnapshotPath())], policy: .atEnd)
         }
         
         let all = repository.fetchWidget()
         let vo = all.first(where: { $0.id == selected.id })
         
-        let entry = WidgetEntry(date: .now, widgetVO: vo)
+        let entry = WidgetEntry(date: .now, widgetVO: vo, canvasSnapshotPath: LiveCanvasSnapshotReader.latestSnapshotPath())
         
         let currentDate = Date()
                 let calendar = Calendar.current
@@ -74,7 +75,20 @@ struct coupleapp_WidgetExtensionEntryView : View {
     @Environment(\.widgetFamily) var widgetFamily
     
     var body: some View {
-        if let vo = entry.widgetVO {
+        if let snapshotPath = entry.canvasSnapshotPath, let image = UIImage(contentsOfFile: snapshotPath) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .overlay(alignment: .bottomLeading) {
+                    Text("우리 낙서장")
+                        .font(.caption.bold())
+                        .padding(6)
+                        .background(.thinMaterial)
+                        .clipShape(Capsule())
+                        .padding(8)
+                }
+                .containerBackground(.fill, for: .widget)
+        } else if let vo = entry.widgetVO {
             
             switch widgetFamily {
                 
@@ -210,5 +224,17 @@ struct WidgetEntity: AppEntity {
 #Preview(as: .systemSmall) {
     coupleapp_WidgetExtension()
 } timeline: {
-    WidgetEntry(date: .now, widgetVO: WidgetVO(title: "hello"))
+    WidgetEntry(date: .now, widgetVO: WidgetVO(title: "hello"), canvasSnapshotPath: nil)
+}
+
+
+private enum LiveCanvasSnapshotReader {
+    static let appGroupIdentifier = "group.com.bongbong.coupleapp"
+    static let latestFileName = "LiveCanvas/latest_canvas.png"
+
+    static func latestSnapshotPath() -> String? {
+        guard let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else { return nil }
+        let url = container.appendingPathComponent(latestFileName)
+        return FileManager.default.fileExists(atPath: url.path) ? url.path : nil
+    }
 }

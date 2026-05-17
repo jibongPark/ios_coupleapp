@@ -52,10 +52,13 @@ public final class TodoDTO: Object, Decodable {
         self.endDate = vo.endDate
         self.isDone = vo.isDone
         self.color = vo.color.toInt()
+        self.shared.append(objectsIn: vo.shared)
     }
     
     public func toVO() -> TodoVO {
-        return TodoVO(id: id, title: title, memo: memo, endDate: endDate, isDone: isDone, color: Color(int:color))
+        var vo = TodoVO(id: id, title: title, memo: memo, endDate: endDate, isDone: isDone, color: Color(int:color))
+        vo.shared = Array(shared)
+        return vo
     }
 }
 
@@ -92,10 +95,13 @@ public final class ScheduleDTO: Object, Decodable {
         self.startDate = vo.startDate
         self.endDate = vo.endDate
         self.color = vo.color.toInt()
+        self.shared.append(objectsIn: vo.shared)
     }
     
     public func toVO() -> ScheduleVO {
-        return ScheduleVO(id: id, title: title, startDate: startDate, endDate: endDate, memo: memo, color: Color(int:color))
+        var vo = ScheduleVO(id: id, title: title, startDate: startDate, endDate: endDate, memo: memo, color: Color(int:color))
+        vo.shared = Array(shared)
+        return vo
     }
 }
 
@@ -120,12 +126,16 @@ public final class DiaryDTO: Object, Decodable {
     
     public init(from vo: DiaryVO) {
         super.init()
+        self.id = vo.id
         self.date = vo.date
         self.content = vo.content
+        self.shared.append(objectsIn: vo.shared)
     }
     
     public func toVO() -> DiaryVO {
-        return DiaryVO(date: date, content: content)
+        var vo = DiaryVO(id: id, date: date, content: content)
+        vo.shared = Array(shared)
+        return vo
     }
 }
 

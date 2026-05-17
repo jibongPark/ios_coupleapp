@@ -9,6 +9,7 @@
 import Moya
 import Foundation
 import AuthDomain
+import Core
 
 enum AuthAPI {
     case login(type: LoginType, jwt: String, name: String)
@@ -23,13 +24,7 @@ extension AuthAPI: TargetType {
     
     
     var baseURL: URL {
-        let url = Bundle.main.object(forInfoDictionaryKey:"BASE_URL")
-        
-        if let urlString = url as? String {
-            return URL(string: urlString)!
-        } else {
-            fatalError("URL String not found")
-        }
+        ConfigManager.shared.apiBaseURL ?? ConfigManager.fallbackBaseURL
     }
     
     var path: String {

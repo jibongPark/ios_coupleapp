@@ -23,6 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.memorybox.android.core.network.DataResult
+import com.memorybox.android.pairing.LocalPairingRepository
+import com.memorybox.android.pairing.PairingRepository
+import com.memorybox.android.pairing.PairingScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -30,6 +33,7 @@ fun FriendScreen(
     userId: String,
     modifier: Modifier = Modifier,
     repository: FriendRepository = remember(userId) { LocalFriendRepository(userId) },
+    pairingRepository: PairingRepository = remember(userId) { LocalPairingRepository(userId) },
 ) {
     var inviteCode by remember { mutableStateOf("") }
     var screenState by remember(repository) { mutableStateOf(FriendScreenState(isLoading = true)) }
@@ -77,6 +81,11 @@ fun FriendScreen(
         Text("친구", style = MaterialTheme.typography.titleLarge)
         Text("uid : $userId", style = MaterialTheme.typography.bodyMedium)
 
+        PairingScreen(
+            userId = userId,
+            repository = pairingRepository,
+        )
+
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = inviteCode,
@@ -111,6 +120,9 @@ fun FriendScreen(
 
         Spacer(Modifier.height(8.dp))
         Text("친구 요청", style = MaterialTheme.typography.titleMedium)
+        if (!screenState.isLoading && screenState.requests.isEmpty()) {
+            Text("받거나 보낸 친구 요청이 없습니다.", style = MaterialTheme.typography.bodyMedium)
+        }
         screenState.requests.forEach { request ->
             val isMyRequest = request.senderId == userId
             Row(
@@ -167,6 +179,9 @@ fun FriendScreen(
         }
 
         Text("친구 목록", style = MaterialTheme.typography.titleMedium)
+        if (!screenState.isLoading && screenState.friends.isEmpty()) {
+            Text("아직 등록된 친구가 없습니다.", style = MaterialTheme.typography.bodyMedium)
+        }
         screenState.friends.forEach { friend ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
